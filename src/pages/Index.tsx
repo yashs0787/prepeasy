@@ -15,7 +15,8 @@ import {
   BookmarkPlus, 
   BriefcaseBusiness, 
   FileCheck, 
-  Sparkles
+  Sparkles,
+  Briefcase
 } from 'lucide-react';
 
 export default function Index() {
