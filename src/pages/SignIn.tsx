@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { BriefcaseIcon, GithubIcon, GoogleIcon, LinkedinIcon } from "lucide-react";
+import { BriefcaseIcon, GithubIcon, LinkedinIcon } from "lucide-react";
 
-// Custom Google icon
-const GoogleIcon = (props) => (
+// Custom Google icon since it's not available in lucide-react
+const CustomGoogleIcon = (props) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <circle cx="12" cy="12" r="10"></circle>
     <path d="M17.5 12c0-2.8-2.2-5-5-5-2.8 0-5 2.2-5 5 0 2.8 2.2 5 5 5M12 7v10"></path>
@@ -132,7 +132,7 @@ export default function SignIn() {
                     type="button"
                     onClick={() => handleSocialLogin("Google")}
                   >
-                    <GoogleIcon className="h-4 w-4 mr-2" />
+                    <CustomGoogleIcon className="h-4 w-4 mr-2" />
                     Google
                   </Button>
                   <Button
@@ -233,7 +233,7 @@ export default function SignIn() {
                     type="button"
                     onClick={() => handleSocialLogin("Google")}
                   >
-                    <GoogleIcon className="h-4 w-4 mr-2" />
+                    <CustomGoogleIcon className="h-4 w-4 mr-2" />
                     Google
                   </Button>
                   <Button
