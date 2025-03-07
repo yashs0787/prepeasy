@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
 import { useJobs } from '@/hooks/useJobs';
 import { JobCard } from '@/components/JobCard';
 import { ResumeBuilder } from '@/components/ResumeBuilder';
