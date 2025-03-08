@@ -13,8 +13,7 @@ import {
   SparklesIcon,
   PlusIcon,
   Trash2Icon,
-  Loader2,
-  FileTextIcon
+  Loader2
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
