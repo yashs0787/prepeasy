@@ -108,6 +108,23 @@
   transform: perspective(1000px) translateZ(2px);
 }
 
+/* Button pulse animation */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 10px rgba(176, 38, 255, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(176, 38, 255, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(176, 38, 255, 0.5);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
 /* Card hover effects */
 .feature-card {
   @apply border border-white/10 bg-black/40 backdrop-blur-lg transition-all duration-300;
@@ -164,4 +181,21 @@
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes slide-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mesh background */
+.bg-dark-mesh {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
 }

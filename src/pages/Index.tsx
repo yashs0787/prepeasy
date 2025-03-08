@@ -1,10 +1,9 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { JobScraper } from '@/components/JobScraper';
 import { ColdDmGenerator } from '@/components/ColdDmGenerator';
-import { toast } from 'sonner';
 import { 
   Zap, 
   Rocket, 
@@ -19,6 +18,17 @@ import {
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+  
+  // Track scroll position for animations
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   
   const scrollToSection = (section: string) => {
     setActiveSection(section);
@@ -46,7 +56,13 @@ export default function Index() {
         <section className="relative py-20 md:py-32">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-6 animated-item">
+              <div 
+                className="space-y-6 animated-item"
+                style={{
+                  transform: `translateY(${scrollY * 0.05}px)`,
+                  transition: 'transform 0.1s ease-out'
+                }}
+              >
                 <div className="inline-flex items-center rounded-full px-3 py-1 text-sm border border-neon-purple/30 bg-neon-purple/10 text-neon-purple mb-3">
                   <Zap size={14} className="mr-1" />
                   <span>Job search automation reimagined</span>
@@ -62,7 +78,7 @@ export default function Index() {
                 
                 <div className="flex flex-wrap gap-4 pt-2">
                   <Button 
-                    className="neon-button text-lg px-8 py-6" 
+                    className="neon-button text-lg px-8 py-6 animate-pulse" 
                     onClick={() => scrollToSection('features')}
                   >
                     Get Started <ChevronRight size={16} />
@@ -92,7 +108,13 @@ export default function Index() {
                 </div>
               </div>
               
-              <div className="relative animated-item">
+              <div 
+                className="relative animated-item"
+                style={{
+                  transform: `translateY(${-scrollY * 0.03}px)`,
+                  transition: 'transform 0.1s ease-out'
+                }}
+              >
                 <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 rounded-lg blur-xl"></div>
                 <div className="relative glass-card rounded-lg overflow-hidden border border-white/20">
                   {/* Abstract UI representation */}
@@ -109,9 +131,9 @@ export default function Index() {
                       <div className="h-8 bg-white/10 rounded w-2/3"></div>
                       <div className="h-24 bg-white/5 rounded"></div>
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="h-16 bg-neon-purple/20 rounded animate-pulse-subtle"></div>
-                        <div className="h-16 bg-neon-blue/20 rounded animate-pulse-subtle delay-150"></div>
-                        <div className="h-16 bg-white/10 rounded animate-pulse-subtle delay-300"></div>
+                        <div className="h-16 bg-neon-purple/20 rounded animate-pulse"></div>
+                        <div className="h-16 bg-neon-blue/20 rounded animate-pulse delay-150"></div>
+                        <div className="h-16 bg-white/10 rounded animate-pulse delay-300"></div>
                       </div>
                       <div className="h-10 bg-neon-purple/40 rounded w-1/3 mx-auto"></div>
                     </div>
@@ -122,32 +144,152 @@ export default function Index() {
           </div>
         </section>
         
-        {/* Stats Section */}
-        <section className="py-16 bg-black/40">
-          <div className="container mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div className="space-y-2 animated-item">
-                <div className="text-4xl font-bold gradient-text">3x</div>
-                <p className="text-muted-foreground">Faster Job Search</p>
+        {/* Problem Section - NEW */}
+        <section id="problem" className="py-24 bg-black/30">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">The Problem</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                Job searching has become a frustrating numbers game
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                {
+                  icon: <Search className="h-8 w-8 text-red-400" />,
+                  title: "Time-Consuming Search",
+                  description: "Hours spent scouring multiple job boards and social platforms for relevant opportunities."
+                },
+                {
+                  icon: <MessageSquare className="h-8 w-8 text-red-400" />,
+                  title: "Generic Outreach",
+                  description: "Cold messages that sound like templates get ignored by hiring managers and recruiters."
+                },
+                {
+                  icon: <BarChart3 className="h-8 w-8 text-red-400" />,
+                  title: "Disorganized Process",
+                  description: "Tracking applications across dozens of companies becomes overwhelming and leads to missed opportunities."
+                },
+              ].map((problem, index) => (
+                <div 
+                  key={index} 
+                  className="feature-card rounded-lg p-6 animated-item"
+                  style={{
+                    opacity: scrollY > 300 ? 1 : 0,
+                    transform: scrollY > 300 ? 'translateY(0)' : 'translateY(20px)',
+                    transition: 'opacity 0.6s ease, transform 0.6s ease',
+                    transitionDelay: `${index * 0.1}s`
+                  }}
+                >
+                  <div className="rounded-full w-14 h-14 flex items-center justify-center bg-red-400/10 border border-red-400/30 mb-4">
+                    {problem.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{problem.title}</h3>
+                  <p className="text-muted-foreground">{problem.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        
+        {/* Solution Section - NEW */}
+        <section id="solution" className="py-24 relative overflow-hidden">
+          <div 
+            className="absolute top-1/2 left-1/2 w-1/2 h-96 bg-neon-purple/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
+            style={{
+              transform: `translate(-50%, -50%) scale(${1 + scrollY * 0.0005})`,
+              opacity: Math.min(0.8, 0.2 + scrollY * 0.0005)
+            }}
+          ></div>
+          
+          <div className="container mx-auto px-4 max-w-6xl relative z-10">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">Our Solution</h2>
+              <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                ApplyGo uses AI to revolutionize your job search workflow
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div 
+                className="space-y-6"
+                style={{
+                  opacity: scrollY > 700 ? 1 : 0,
+                  transform: scrollY > 700 ? 'translateX(0)' : 'translateX(-50px)',
+                  transition: 'opacity 0.6s ease, transform 0.6s ease'
+                }}
+              >
+                <div className="space-y-6">
+                  <div className="flex gap-4 items-start">
+                    <div className="rounded-full w-10 h-10 flex items-center justify-center bg-neon-purple/20 border border-neon-purple/40 shrink-0 mt-1">
+                      <Zap className="h-5 w-5 text-neon-purple" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">AI-Powered Job Discovery</h3>
+                      <p className="text-muted-foreground">Our algorithms scan LinkedIn, Reddit, and Twitter to find hidden job opportunities that match your skills and preferences.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4 items-start">
+                    <div className="rounded-full w-10 h-10 flex items-center justify-center bg-neon-purple/20 border border-neon-purple/40 shrink-0 mt-1">
+                      <MessageSquare className="h-5 w-5 text-neon-purple" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Personalized Outreach</h3>
+                      <p className="text-muted-foreground">Generate highly customized messages that highlight your relevant experience and show genuine interest in the role.</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4 items-start">
+                    <div className="rounded-full w-10 h-10 flex items-center justify-center bg-neon-purple/20 border border-neon-purple/40 shrink-0 mt-1">
+                      <FileText className="h-5 w-5 text-neon-purple" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Application Management</h3>
+                      <p className="text-muted-foreground">Keep track of all your applications, follow-ups, and interviews in one centralized dashboard.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Button 
+                  className="neon-button mt-4" 
+                  onClick={() => scrollToSection('features')}
+                  style={{
+                    transform: scrollY > 800 ? 'scale(1)' : 'scale(0.9)',
+                    transition: 'transform 0.3s ease',
+                    transitionDelay: '0.3s'
+                  }}
+                >
+                  Explore All Features <ChevronRight size={16} />
+                </Button>
               </div>
-              <div className="space-y-2 animated-item">
-                <div className="text-4xl font-bold gradient-text">85%</div>
-                <p className="text-muted-foreground">Response Rate</p>
-              </div>
-              <div className="space-y-2 animated-item">
-                <div className="text-4xl font-bold gradient-text">10k+</div>
-                <p className="text-muted-foreground">Jobs Scraped Daily</p>
-              </div>
-              <div className="space-y-2 animated-item">
-                <div className="text-4xl font-bold gradient-text">4.9/5</div>
-                <p className="text-muted-foreground">User Rating</p>
+              
+              <div 
+                className="relative"
+                style={{
+                  opacity: scrollY > 700 ? 1 : 0,
+                  transform: scrollY > 700 ? 'translateX(0)' : 'translateX(50px)',
+                  transition: 'opacity 0.6s ease, transform 0.6s ease'
+                }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/10 to-neon-blue/10 rounded-lg blur-xl"></div>
+                <div className="relative glass-card rounded-lg overflow-hidden border border-white/10 p-6">
+                  <div className="aspect-video bg-black/40 rounded-lg flex items-center justify-center">
+                    <div className="text-center">
+                      <Rocket className="h-12 w-12 text-neon-purple mx-auto mb-3" />
+                      <p className="text-lg font-medium">Product Demo</p>
+                      <p className="text-sm text-muted-foreground">See ApplyGo in action</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </section>
         
         {/* Features Section */}
-        <section id="features" className="py-20">
+        <section id="features" className="py-24">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="text-center mb-16 animated-item">
               <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">How ApplyGo Works</h2>
@@ -189,12 +331,49 @@ export default function Index() {
                   description: "Showcase your verified skills and certifications to stand out from other candidates."
                 }
               ].map((feature, index) => (
-                <div key={index} className="feature-card rounded-lg p-6 animated-item">
+                <div 
+                  key={index} 
+                  className="feature-card rounded-lg p-6"
+                  style={{
+                    opacity: scrollY > 1200 ? 1 : 0,
+                    transform: scrollY > 1200 ? 'translateY(0)' : 'translateY(30px)',
+                    transition: 'opacity 0.6s ease, transform 0.6s ease',
+                    transitionDelay: `${index * 0.1}s`
+                  }}
+                >
                   <div className="rounded-full w-14 h-14 flex items-center justify-center bg-neon-purple/10 border border-neon-purple/30 mb-4">
                     {feature.icon}
                   </div>
                   <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                   <p className="text-muted-foreground">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+        
+        {/* Stats Section */}
+        <section className="py-16 bg-black/40">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+              {[
+                { value: "3x", label: "Faster Job Search" },
+                { value: "85%", label: "Response Rate" },
+                { value: "10k+", label: "Jobs Scraped Daily" },
+                { value: "4.9/5", label: "User Rating" }
+              ].map((stat, index) => (
+                <div 
+                  key={index} 
+                  className="space-y-2"
+                  style={{
+                    opacity: scrollY > 1600 ? 1 : 0,
+                    transform: scrollY > 1600 ? 'translateY(0)' : 'translateY(20px)',
+                    transition: 'opacity 0.6s ease, transform 0.6s ease',
+                    transitionDelay: `${index * 0.1}s`
+                  }}
+                >
+                  <div className="text-4xl font-bold gradient-text">{stat.value}</div>
+                  <p className="text-muted-foreground">{stat.label}</p>
                 </div>
               ))}
             </div>
@@ -212,7 +391,14 @@ export default function Index() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
-              <div className="bg-black/40 border border-white/10 rounded-xl p-6 md:p-8 animated-item">
+              <div 
+                className="bg-black/40 border border-white/10 rounded-xl p-6 md:p-8"
+                style={{
+                  opacity: scrollY > 1800 ? 1 : 0,
+                  transform: scrollY > 1800 ? 'translateY(0)' : 'translateY(30px)',
+                  transition: 'opacity 0.6s ease, transform 0.6s ease'
+                }}
+              >
                 <div className="flex items-center gap-4 mb-6">
                   <Search className="h-6 w-6 text-neon-purple" />
                   <h3 className="text-2xl font-semibold">Job Scraper Demo</h3>
@@ -220,7 +406,14 @@ export default function Index() {
                 <JobScraper />
               </div>
               
-              <div className="bg-black/40 border border-white/10 rounded-xl p-6 md:p-8 animated-item">
+              <div 
+                className="bg-black/40 border border-white/10 rounded-xl p-6 md:p-8"
+                style={{
+                  opacity: scrollY > 2000 ? 1 : 0,
+                  transform: scrollY > 2000 ? 'translateY(0)' : 'translateY(30px)',
+                  transition: 'opacity 0.6s ease, transform 0.6s ease'
+                }}
+              >
                 <div className="flex items-center gap-4 mb-6">
                   <MessageSquare className="h-6 w-6 text-neon-purple" />
                   <h3 className="text-2xl font-semibold">Cold DM Generator Demo</h3>
@@ -231,11 +424,36 @@ export default function Index() {
           </div>
         </section>
         
+        {/* Floating CTA Button */}
+        <div 
+          className="fixed bottom-8 right-8 z-50"
+          style={{
+            opacity: scrollY > 300 ? 1 : 0,
+            transform: scrollY > 300 ? 'scale(1)' : 'scale(0.8)',
+            transition: 'opacity 0.3s ease, transform 0.3s ease'
+          }}
+        >
+          <Button 
+            className="neon-button rounded-full flex items-center gap-2 px-6"
+            onClick={() => scrollToSection('features')}
+          >
+            <Zap size={18} />
+            <span>Try ApplyGo Now</span>
+          </Button>
+        </div>
+        
         {/* Testimonial/CTA Section */}
         <section className="py-20">
           <div className="container mx-auto px-4 max-w-6xl">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              <div className="space-y-6 animated-item">
+              <div 
+                className="space-y-6"
+                style={{
+                  opacity: scrollY > 2300 ? 1 : 0,
+                  transform: scrollY > 2300 ? 'translateX(0)' : 'translateX(-30px)',
+                  transition: 'opacity 0.6s ease, transform 0.6s ease'
+                }}
+              >
                 <div className="glass-card p-6 rounded-lg border border-white/10 relative">
                   <div className="absolute -top-3 -left-3 text-4xl">❝</div>
                   <p className="text-lg italic mb-4">
@@ -265,13 +483,23 @@ export default function Index() {
                 </div>
               </div>
               
-              <div className="space-y-8 animated-item">
+              <div 
+                className="space-y-8"
+                style={{
+                  opacity: scrollY > 2300 ? 1 : 0,
+                  transform: scrollY > 2300 ? 'translateX(0)' : 'translateX(30px)',
+                  transition: 'opacity 0.6s ease, transform 0.6s ease'
+                }}
+              >
                 <h2 className="text-3xl md:text-4xl font-bold gradient-text">Ready to supercharge your job search?</h2>
                 <p className="text-xl text-muted-foreground">
                   Join thousands of job seekers who have already found their dream jobs with ApplyGo. Our AI-powered platform will help you stand out, get noticed, and land interviews faster.
                 </p>
                 <div className="space-y-4">
-                  <Button className="neon-button text-lg w-full py-6">
+                  <Button 
+                    className="neon-button text-lg w-full py-6 hover:animate-pulse"
+                    onClick={() => scrollToSection('features')}
+                  >
                     Get Started Now
                   </Button>
                   <p className="text-center text-sm text-muted-foreground">
