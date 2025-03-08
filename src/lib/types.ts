@@ -34,4 +34,5 @@ export interface Job {
   companyLogoUrl?: string;
   responsibilities?: string[];
   applyUrl?: string;
+  requirements?: string[]; // Added for compatibility with mockData
 }

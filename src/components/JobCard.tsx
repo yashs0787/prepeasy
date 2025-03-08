@@ -11,16 +11,17 @@ import {
   BriefcaseIcon 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Job } from '@/lib/mockData';
+import { Job } from '@/lib/types';
 
 interface JobCardProps {
   job: Job;
   isSelected?: boolean;
   onClick?: () => void;
   onSave?: () => void;
+  onApply?: () => void;
 }
 
-export function JobCard({ job, isSelected, onClick, onSave }: JobCardProps) {
+export function JobCard({ job, isSelected, onClick, onSave, onApply }: JobCardProps) {
   const [isHovering, setIsHovering] = useState(false);
   
   const formatDate = (dateString: string) => {
@@ -118,7 +119,7 @@ export function JobCard({ job, isSelected, onClick, onSave }: JobCardProps) {
             
             <div className="text-xs flex items-center text-muted-foreground ml-auto">
               <CalendarIcon size={12} className="inline mr-1" />
-              {formatDate(job.postedDate)}
+              {formatDate(job.postedAt)}
             </div>
           </div>
           
@@ -145,7 +146,11 @@ export function JobCard({ job, isSelected, onClick, onSave }: JobCardProps) {
                 className="text-xs h-8"
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.open(job.applyUrl, '_blank');
+                  if (onApply) {
+                    onApply();
+                  } else if (job.applyUrl) {
+                    window.open(job.applyUrl, '_blank');
+                  }
                 }}
               >
                 Apply Now

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
@@ -29,9 +29,9 @@ export default function Dashboard() {
   
   // Filter jobs for different sections
   const savedJobs = jobs.filter(job => job.isSaved);
-  const appliedJobs = jobs.filter(job => job.applicationStatus === 'Applied' || job.applicationStatus === 'In Progress');
-  const rejectedJobs = jobs.filter(job => job.applicationStatus === 'Rejected');
-  const offeredJobs = jobs.filter(job => job.applicationStatus === 'Offered');
+  const appliedJobs = jobs.filter(job => job.applicationStatus === 'applied' || job.applicationStatus === 'interviewing');
+  const rejectedJobs = jobs.filter(job => job.applicationStatus === 'rejected');
+  const offeredJobs = jobs.filter(job => job.applicationStatus === 'offered');
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -126,9 +126,9 @@ export default function Dashboard() {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Interviews</span>
-                      <span className="font-medium">{jobs.filter(j => j.applicationStatus === 'In Progress').length}</span>
+                      <span className="font-medium">{jobs.filter(j => j.applicationStatus === 'interviewing').length}</span>
                     </div>
-                    <Progress value={(jobs.filter(j => j.applicationStatus === 'In Progress').length / jobs.length) * 100} className="h-1" />
+                    <Progress value={(jobs.filter(j => j.applicationStatus === 'interviewing').length / jobs.length) * 100} className="h-1" />
                   </div>
                   
                   <div className="space-y-2">
@@ -203,10 +203,10 @@ export default function Dashboard() {
                                 <p className="text-sm text-muted-foreground">{job.company}</p>
                               </div>
                               <div className="text-sm">
-                                {job.applicationStatus === 'Applied' ? (
+                                {job.applicationStatus === 'applied' ? (
                                   <Badge variant="outline" className="bg-blue-100 text-blue-700">Applied</Badge>
                                 ) : (
-                                  <Badge variant="outline" className="bg-amber-100 text-amber-700">In Progress</Badge>
+                                  <Badge variant="outline" className="bg-amber-100 text-amber-700">Interviewing</Badge>
                                 )}
                               </div>
                             </div>
@@ -240,7 +240,7 @@ export default function Dashboard() {
                                 <p className="text-sm text-muted-foreground">{job.company}</p>
                               </div>
                               <div className="text-sm">
-                                {job.applicationStatus === 'Offered' ? (
+                                {job.applicationStatus === 'offered' ? (
                                   <Badge variant="outline" className="bg-green-100 text-green-700">Offered</Badge>
                                 ) : (
                                   <Badge variant="outline" className="bg-red-100 text-red-700">Rejected</Badge>
