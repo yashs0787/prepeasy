@@ -23,7 +23,7 @@ export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrol
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">Our Solution</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            ApplyGo uses AI to revolutionize your job search workflow
+            ApplyGo automates job discovery and application to make the process one-click simple
           </p>
         </div>
         
@@ -42,8 +42,8 @@ export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrol
                   <Zap className="h-5 w-5 text-neon-purple" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">AI-Powered Job Discovery</h3>
-                  <p className="text-muted-foreground">Our algorithms scan LinkedIn, Reddit, and Twitter to find hidden job opportunities that match your skills and preferences.</p>
+                  <h3 className="text-xl font-semibold mb-2">Centralized Job Discovery</h3>
+                  <p className="text-muted-foreground">Find opportunities from across platforms categorized by job type, experience level, and industry in one place.</p>
                 </div>
               </div>
               
@@ -53,7 +53,7 @@ export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrol
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Personalized Outreach</h3>
-                  <p className="text-muted-foreground">Generate highly customized messages that highlight your relevant experience and show genuine interest in the role.</p>
+                  <p className="text-muted-foreground">Automatically generate customized messages for hiring managers that showcase your relevant skills and experience.</p>
                 </div>
               </div>
               
@@ -62,8 +62,8 @@ export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrol
                   <FileText className="h-5 w-5 text-neon-purple" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">Application Management</h3>
-                  <p className="text-muted-foreground">Keep track of all your applications, follow-ups, and interviews in one centralized dashboard.</p>
+                  <h3 className="text-xl font-semibold mb-2">One-Click Applications</h3>
+                  <p className="text-muted-foreground">Generate tailored resumes and apply to jobs with a single click, saving hours of repetitive work.</p>
                 </div>
               </div>
             </div>
@@ -94,8 +94,8 @@ export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrol
               <div className="aspect-video bg-black/40 rounded-lg flex items-center justify-center">
                 <div className="text-center">
                   <Rocket className="h-12 w-12 text-neon-purple mx-auto mb-3" />
-                  <p className="text-lg font-medium">Product Demo</p>
-                  <p className="text-sm text-muted-foreground">See ApplyGo in action</p>
+                  <p className="text-lg font-medium">Modern Job Marketplace</p>
+                  <p className="text-sm text-muted-foreground">For the next generation of professionals</p>
                 </div>
               </div>
             </div>

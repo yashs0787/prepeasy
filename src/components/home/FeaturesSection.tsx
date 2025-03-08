@@ -10,33 +10,33 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ scrollY }) => 
   const features = [
     {
       icon: <Search className="h-8 w-8 text-neon-purple" />,
-      title: "AI Job Scraper",
-      description: "Find hidden opportunities across LinkedIn, Twitter, and Reddit that match your skills and preferences."
+      title: "Comprehensive Job Board",
+      description: "Browse opportunities across categories including job types, experience levels, and industries in one place."
     },
     {
       icon: <MessageSquare className="h-8 w-8 text-neon-purple" />,
-      title: "Cold DM Generator",
-      description: "Create personalized outreach messages that get responses from hiring managers and recruiters."
+      title: "Smart Outreach Templates",
+      description: "Generate personalized outreach messages that get responses from hiring managers."
     },
     {
       icon: <FileText className="h-8 w-8 text-neon-purple" />,
-      title: "Resume Optimizer",
-      description: "Tailor your resume for each application to pass ATS systems and highlight relevant skills."
+      title: "Resume Builder",
+      description: "Create professional resumes with multiple formats that highlight your relevant skills for each application."
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-neon-purple" />,
       title: "Application Tracker",
-      description: "Keep track of all your applications, interviews, and follow-ups in one organized dashboard."
+      description: "Manage all your applications, interviews, and follow-ups in one organized dashboard."
     },
     {
       icon: <Rocket className="h-8 w-8 text-neon-purple" />,
-      title: "Interview Prep",
-      description: "Get customized interview preparation based on the company and role you're applying for."
+      title: "Job Categories",
+      description: "Find opportunities filtered by industry, experience level, and job type to match your preferences."
     },
     {
       icon: <Award className="h-8 w-8 text-neon-purple" />,
-      title: "Skill Validator",
-      description: "Showcase your verified skills and certifications to stand out from other candidates."
+      title: "Profile Portfolio",
+      description: "Showcase your verified skills and work samples to stand out from other candidates."
     }
   ];
 
@@ -46,7 +46,7 @@ export const FeaturesSection: React.FC<FeaturesSectionProps> = ({ scrollY }) => 
         <div className="text-center mb-16 animated-item">
           <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">How ApplyGo Works</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Our AI-powered platform simplifies your job search from start to finish
+            Our platform simplifies your job search from discovery to application
           </p>
         </div>
         

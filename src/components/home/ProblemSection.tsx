@@ -10,18 +10,18 @@ export const ProblemSection: React.FC<ProblemSectionProps> = ({ scrollY }) => {
   const problems = [
     {
       icon: <Search className="h-8 w-8 text-red-400" />,
-      title: "Time-Consuming Search",
-      description: "Hours spent scouring multiple job boards and social platforms for relevant opportunities."
+      title: "Ineffective Traditional Platforms",
+      description: "Old and conventional job platforms like Naukri aren't effective for the younger generation looking for modern opportunities."
     },
     {
       icon: <MessageSquare className="h-8 w-8 text-red-400" />,
-      title: "Generic Outreach",
-      description: "Cold messages that sound like templates get ignored by hiring managers and recruiters."
+      title: "Scattered Job Postings",
+      description: "Hiring managers post job openings across various platforms making it difficult to find and track the best opportunities."
     },
     {
       icon: <BarChart3 className="h-8 w-8 text-red-400" />,
-      title: "Disorganized Process",
-      description: "Tracking applications across dozens of companies becomes overwhelming and leads to missed opportunities."
+      title: "Proof of Work Requirements",
+      description: "Companies increasingly need proof of work and personalized applications, which are time-consuming to create for each job."
     },
   ];
 
@@ -31,7 +31,7 @@ export const ProblemSection: React.FC<ProblemSectionProps> = ({ scrollY }) => {
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">The Problem</h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Job searching has become a frustrating numbers game
+            The job search process hasn't evolved for the younger generation
           </p>
         </div>
         

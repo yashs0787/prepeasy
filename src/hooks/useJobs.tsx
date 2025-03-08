@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Job, mockJobs } from '@/lib/mockData';
+import { Job, ApplicationStatus } from '@/lib/types';
+import { mockJobs } from '@/lib/mockData';
 import { toast } from 'sonner';
 
 interface UseJobsProps {
@@ -40,10 +41,20 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
           hiringManager: {
             name: getRandomName(),
             role: job.company.includes('Tech') ? 'CTO' : 'HR Manager',
-            platform: 'linkedin'
+            platform: 'linkedin',
+            linkedIn: 'linkedin.com/in/' + getRandomLinkedInUsername(),
+            twitter: 'twitter.com/' + getRandomTwitterUsername(),
+            email: getRandomEmail(),
+            position: job.company.includes('Tech') ? 'CTO' : 'HR Manager'
           },
           // Add application status (null means not applied)
-          applicationStatus: null
+          applicationStatus: null,
+          // Add company logo URL
+          companyLogoUrl: `https://ui-avatars.com/api/?name=${encodeURIComponent(job.company)}&background=random`,
+          // Add responsibilities array
+          responsibilities: getRandomResponsibilities(),
+          // Add apply URL
+          applyUrl: `https://example.com/jobs/${job.id}/apply`
         }));
         
         setJobs(enhancedJobs);
@@ -87,6 +98,42 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
     const firstNames = ["Alex", "Jordan", "Taylor", "Morgan", "Casey", "Jamie", "Sam", "Riley"];
     const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"];
     return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+  }
+
+  function getRandomLinkedInUsername() {
+    const usernames = ["alex-tech", "jordan-dev", "taylor-engineer", "morgan-coder", "casey-pm", "jamie-hr", "sam-design", "riley-data"];
+    return usernames[Math.floor(Math.random() * usernames.length)];
+  }
+
+  function getRandomTwitterUsername() {
+    const usernames = ["alextech", "jordandev", "tayloreng", "morgancoder", "caseypm", "jamiehr", "samdesign", "rileydata"];
+    return usernames[Math.floor(Math.random() * usernames.length)];
+  }
+
+  function getRandomEmail() {
+    const domains = ["company.com", "tech.co", "startup.io", "enterprise.net", "hrteam.org"];
+    const names = ["hiring", "recruiting", "jobs", "careers", "hr", "talent"];
+    const name = names[Math.floor(Math.random() * names.length)];
+    const domain = domains[Math.floor(Math.random() * domains.length)];
+    return `${name}@${domain}`;
+  }
+
+  function getRandomResponsibilities() {
+    const responsibilities = [
+      "Lead development of new features for our flagship product",
+      "Collaborate with cross-functional teams to define product requirements",
+      "Optimize application performance and scalability",
+      "Implement robust testing strategies to ensure product quality",
+      "Mentor junior developers and provide technical guidance",
+      "Design and implement APIs for internal and external consumption",
+      "Participate in code reviews and ensure code quality standards",
+      "Research and propose new technologies to improve our stack"
+    ];
+    
+    // Return 3-5 random responsibilities
+    const count = Math.floor(Math.random() * 3) + 3;
+    const shuffled = [...responsibilities].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
   }
 
   // Filter jobs based on search query and filters
@@ -174,13 +221,30 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
   }, []);
 
   // Update application status
-  const updateApplicationStatus = useCallback((jobId: string, status: Job['applicationStatus']) => {
+  const updateApplicationStatus = useCallback((jobId: string, status: ApplicationStatus) => {
     setJobs(prevJobs => prevJobs.map(job => 
       job.id === jobId 
         ? { ...job, applicationStatus: status } 
         : job
     ));
-  }, []);
+    
+    // Show toast notification
+    const statusMessages = {
+      applied: "Application submitted successfully",
+      interviewing: "Status updated to 'Interviewing'",
+      offered: "Status updated to 'Offered'",
+      rejected: "Status updated to 'Rejected'",
+      null: "Application removed"
+    };
+    
+    const jobTitle = jobs.find(job => job.id === jobId)?.title;
+    if (status && jobTitle) {
+      toast.success(statusMessages[status], {
+        description: jobTitle,
+        duration: 2000
+      });
+    }
+  }, [jobs]);
 
   return {
     jobs: filteredJobs,
