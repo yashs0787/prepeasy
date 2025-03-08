@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import NotFound from "./pages/NotFound";
+import JobCategories from "./pages/JobCategories";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/jobs" element={<Jobs />} />
+            <Route path="/jobs/categories/:category" element={<JobCategories />} />
             <Route path="/resume-builder" element={<ResumeBuilder />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/signin" element={<SignIn />} />

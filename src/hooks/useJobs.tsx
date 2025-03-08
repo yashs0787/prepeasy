@@ -1,6 +1,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Job, mockJobs } from '@/lib/mockData';
+import { toast } from 'sonner';
 
 interface UseJobsProps {
   initialQuery?: string;
@@ -27,7 +28,25 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
       try {
         // Simulate API delay
         await new Promise(resolve => setTimeout(resolve, 1000));
-        setJobs(mockJobs);
+        
+        // Enhance mock data with additional fields for our new features
+        const enhancedJobs = mockJobs.map(job => ({
+          ...job,
+          // Add fields for job categories
+          category: getRandomCategory(),
+          experienceLevel: getRandomExperienceLevel(),
+          industry: getRandomIndustry(),
+          // Add hiring manager information
+          hiringManager: {
+            name: getRandomName(),
+            role: job.company.includes('Tech') ? 'CTO' : 'HR Manager',
+            platform: 'linkedin'
+          },
+          // Add application status (null means not applied)
+          applicationStatus: null
+        }));
+        
+        setJobs(enhancedJobs);
         setError(null);
       } catch (err) {
         console.error('Error fetching jobs:', err);
@@ -39,6 +58,36 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
 
     fetchJobs();
   }, []);
+
+  // Helper functions for generating random data
+  function getRandomCategory() {
+    const categories = [
+      "Full-time", "Part-time", "Freelance/Contract", "Remote", "Hybrid",
+      "Internships (Paid)", "Internships (Unpaid)", "Internships (Virtual)"
+    ];
+    return categories[Math.floor(Math.random() * categories.length)];
+  }
+  
+  function getRandomExperienceLevel() {
+    const levels = ["Entry-Level", "Mid-Level", "Senior-Level", "Executive/C-Level"];
+    return levels[Math.floor(Math.random() * levels.length)];
+  }
+  
+  function getRandomIndustry() {
+    const industries = [
+      "Software & IT", "Finance & Accounting", "Marketing & Sales", 
+      "Operations & Logistics", "HR & Talent Acquisition", "Consulting & Strategy", 
+      "Creative & Design", "Legal & Compliance", "Healthcare & Biotech", 
+      "Data Science & Analytics", "Education & Research"
+    ];
+    return industries[Math.floor(Math.random() * industries.length)];
+  }
+  
+  function getRandomName() {
+    const firstNames = ["Alex", "Jordan", "Taylor", "Morgan", "Casey", "Jamie", "Sam", "Riley"];
+    const lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis"];
+    return `${firstNames[Math.floor(Math.random() * firstNames.length)]} ${lastNames[Math.floor(Math.random() * lastNames.length)]}`;
+  }
 
   // Filter jobs based on search query and filters
   const filteredJobs = useMemo(() => {
@@ -55,9 +104,20 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
         if (!matchesQuery) return false;
       }
       
-      // Filter by categories
+      // Filter by categories (includes job type, experience level, and industry)
       if (filters.categories && filters.categories.length > 0) {
-        if (!filters.categories.includes(job.category)) return false;
+        const jobCategories = [
+          job.category,
+          job.experienceLevel,
+          job.industry,
+          job.workType
+        ];
+        
+        const hasMatchingCategory = filters.categories.some(category => 
+          jobCategories.some(jobCategory => jobCategory === category)
+        );
+        
+        if (!hasMatchingCategory) return false;
       }
       
       // Filter by job types
@@ -91,11 +151,26 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
 
   // Save job (toggle save status)
   const toggleSaveJob = useCallback((jobId: string) => {
-    setJobs(prevJobs => prevJobs.map(job => 
-      job.id === jobId 
-        ? { ...job, isSaved: !job.isSaved } 
-        : job
-    ));
+    setJobs(prevJobs => {
+      const updatedJobs = prevJobs.map(job => 
+        job.id === jobId 
+          ? { ...job, isSaved: !job.isSaved } 
+          : job
+      );
+      
+      const job = updatedJobs.find(j => j.id === jobId);
+      if (job) {
+        toast.success(
+          job.isSaved ? "Job removed from saved jobs" : "Job saved successfully", 
+          { 
+            description: `${job.title} at ${job.company}`,
+            duration: 2000
+          }
+        );
+      }
+      
+      return updatedJobs;
+    });
   }, []);
 
   // Update application status
@@ -109,6 +184,7 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
 
   return {
     jobs: filteredJobs,
+    allJobs: jobs,
     isLoading,
     error,
     query,

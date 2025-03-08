@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Copy, Sparkles, CheckCheck, Send, Loader2 } from "lucide-react";
 
-export function ColdDmGenerator() {
+interface ColdDmGeneratorProps {
+  initialValues?: {
+    name: string;
+    companyName: string;
+    role: string;
+    personalizedNote: string;
+    tone: string;
+    platform: string;
+  };
+  compact?: boolean;
+  jobTitle?: string;
+}
+
+export function ColdDmGenerator({ initialValues, compact = false, jobTitle }: ColdDmGeneratorProps) {
   const [formData, setFormData] = useState({
     name: '',
     companyName: '',
@@ -24,6 +37,20 @@ export function ColdDmGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  
+  // Update form data when initialValues change
+  useEffect(() => {
+    if (initialValues) {
+      setFormData({
+        name: initialValues.name || '',
+        companyName: initialValues.companyName || '',
+        role: initialValues.role || '',
+        personalizedNote: initialValues.personalizedNote || '',
+        tone: initialValues.tone || 'professional',
+        platform: initialValues.platform || 'linkedin'
+      });
+    }
+  }, [initialValues]);
   
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -51,6 +78,7 @@ export function ColdDmGenerator() {
       - Recipient: ${formData.name}
       - Company: ${formData.companyName}
       - Their Role: ${formData.role}
+      ${jobTitle ? `- Job Title I'm Applying For: ${jobTitle}` : ''}
       - Personalized Note: ${formData.personalizedNote || "N/A"}
       
       The message should be concise, authentic, and likely to get a response. For LinkedIn, keep it under 300 characters.
@@ -115,6 +143,135 @@ export function ColdDmGenerator() {
       toast.info("This is a demonstration. In the full version, you can send messages directly from here");
     }, 1500);
   };
+  
+  if (compact) {
+    return (
+      <div className="space-y-4">
+        {showApiKeyInput && (
+          <div className="mb-4 p-4 border rounded-md">
+            <div className="text-sm font-medium mb-2">Enter Your OpenAI API Key</div>
+            <div className="space-y-2">
+              <Input 
+                type="password" 
+                placeholder="sk-..." 
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Don't have an API key? Get one from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-neon-purple hover:underline">OpenAI</a>
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowApiKeyInput(false)} 
+                disabled={!apiKey}
+                className="w-full"
+              >
+                Save API Key
+              </Button>
+            </div>
+          </div>
+        )}
+        
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="personalizedNote">Personalized Message or Connection Point</Label>
+            <Textarea 
+              id="personalizedNote" 
+              placeholder="I was impressed by the recent project you shared about..."
+              className="min-h-[100px]"
+              value={formData.personalizedNote}
+              onChange={(e) => handleInputChange('personalizedNote', e.target.value)}
+            />
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="tone">Tone</Label>
+              <Select 
+                value={formData.tone} 
+                onValueChange={(value) => handleInputChange('tone', value)}
+              >
+                <SelectTrigger id="tone">
+                  <SelectValue placeholder="Select tone" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="professional">Professional</SelectItem>
+                  <SelectItem value="friendly">Friendly</SelectItem>
+                  <SelectItem value="direct">Direct</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="platform">Platform</Label>
+              <Select 
+                value={formData.platform} 
+                onValueChange={(value) => handleInputChange('platform', value)}
+              >
+                <SelectTrigger id="platform">
+                  <SelectValue placeholder="Select platform" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  <SelectItem value="twitter">X/Twitter</SelectItem>
+                  <SelectItem value="email">Email</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isGenerating} 
+            className="neon-button w-full"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Generating...
+              </>
+            ) : (
+              "Generate Cold DM with ChatGPT"
+            )}
+          </Button>
+        </div>
+        
+        {generatedMessage && (
+          <div className="border border-neon-purple/30 rounded-md p-4 bg-black/40">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-medium">Your Personalized Message</div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={copyToClipboard} 
+                  className="h-8 w-8"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={sendMessage}
+                  className="h-8 w-8"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="bg-black/40 p-4 rounded-md whitespace-pre-line text-sm">
+              {generatedMessage}
+            </div>
+            <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+              <CheckCheck className="h-3 w-3" />
+              <span>AI optimized for higher response rates</span>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
   
   return (
     <div className="w-full">
