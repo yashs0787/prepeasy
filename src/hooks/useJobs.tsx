@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Job, ApplicationStatus } from '@/lib/types';
 import { mockJobs } from '@/lib/mockData';
@@ -57,7 +58,9 @@ export function useJobs({ initialQuery = '', initialFilters = {} }: UseJobsProps
           // Add source
           source: 'Internal Database',
           // Add skills if not present
-          skills: job.requirements || ['JavaScript', 'React', 'TypeScript']
+          skills: job.requirements || ['JavaScript', 'React', 'TypeScript'],
+          // Make sure isSaved is always defined
+          isSaved: job.isSaved || false
         }));
         
         setJobs(enhancedJobs);

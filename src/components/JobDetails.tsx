@@ -18,7 +18,7 @@ import {
   ClockIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Job } from '@/lib/mockData';
+import { Job } from '@/lib/types';
 
 interface JobDetailsProps {
   job: Job;
@@ -46,10 +46,10 @@ export function JobDetails({ job, onSave, onClose, onApply }: JobDetailsProps) {
   const applicationStatus = job.applicationStatus || 'Not Applied';
   const statusColors = {
     'Not Applied': 'bg-secondary text-muted-foreground',
-    'Applied': 'bg-blue-100 text-blue-700',
-    'In Progress': 'bg-amber-100 text-amber-700',
-    'Rejected': 'bg-red-100 text-red-700',
-    'Offered': 'bg-green-100 text-green-700'
+    'applied': 'bg-blue-100 text-blue-700',
+    'interviewing': 'bg-amber-100 text-amber-700',
+    'rejected': 'bg-red-100 text-red-700',
+    'offered': 'bg-green-100 text-green-700'
   };
 
   return (
@@ -86,15 +86,15 @@ export function JobDetails({ job, onSave, onClose, onApply }: JobDetailsProps) {
       </div>
       
       <div className="flex flex-wrap gap-3">
-        {job.applicationStatus && (
+        {applicationStatus && (
           <Badge variant="outline" className={statusColors[applicationStatus]}>
             {applicationStatus === 'Not Applied' ? (
               <><ClockIcon size={12} className="mr-1" /> Not Applied</>
-            ) : applicationStatus === 'Applied' ? (
+            ) : applicationStatus === 'applied' ? (
               <><CheckCircleIcon size={12} className="mr-1" /> Applied</>
-            ) : applicationStatus === 'In Progress' ? (
-              <><ClockIcon size={12} className="mr-1" /> In Progress</>
-            ) : applicationStatus === 'Rejected' ? (
+            ) : applicationStatus === 'interviewing' ? (
+              <><ClockIcon size={12} className="mr-1" /> Interviewing</>
+            ) : applicationStatus === 'rejected' ? (
               <><XCircleIcon size={12} className="mr-1" /> Rejected</>
             ) : (
               <><CheckCircleIcon size={12} className="mr-1" /> Offered</>
@@ -133,7 +133,7 @@ export function JobDetails({ job, onSave, onClose, onApply }: JobDetailsProps) {
         
         <div className="flex items-center text-sm text-muted-foreground">
           <CalendarIcon size={16} className="mr-2" />
-          <span>Posted on {formatDate(job.postedDate)}</span>
+          <span>Posted on {job.postedAt}</span>
         </div>
       </div>
       
@@ -144,23 +144,27 @@ export function JobDetails({ job, onSave, onClose, onApply }: JobDetailsProps) {
         <p className="text-muted-foreground">{job.description}</p>
       </div>
       
-      <div>
-        <h2 className="text-lg font-medium mb-3">Responsibilities</h2>
-        <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-          {job.responsibilities.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      </div>
+      {job.responsibilities && job.responsibilities.length > 0 && (
+        <div>
+          <h2 className="text-lg font-medium mb-3">Responsibilities</h2>
+          <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+            {job.responsibilities.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       
-      <div>
-        <h2 className="text-lg font-medium mb-3">Requirements</h2>
-        <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-          {job.requirements.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
-      </div>
+      {job.requirements && job.requirements.length > 0 && (
+        <div>
+          <h2 className="text-lg font-medium mb-3">Requirements</h2>
+          <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+            {job.requirements.map((item, index) => (
+              <li key={index}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
       
       {job.hiringManager && (
         <>
@@ -173,7 +177,7 @@ export function JobDetails({ job, onSave, onClose, onApply }: JobDetailsProps) {
               </div>
               <div>
                 <h3 className="font-medium">{job.hiringManager.name}</h3>
-                <p className="text-sm text-muted-foreground">{job.hiringManager.position}</p>
+                <p className="text-sm text-muted-foreground">{job.hiringManager.position || job.hiringManager.role}</p>
                 <div className="flex gap-2 mt-2">
                   {job.hiringManager.linkedIn && (
                     <a href={job.hiringManager.linkedIn} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary">
