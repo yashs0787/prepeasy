@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Copy, Sparkles, CheckCheck, Send } from "lucide-react";
+import { Copy, Sparkles, CheckCheck, Send, Loader2 } from "lucide-react";
 
 export function ColdDmGenerator() {
   const [formData, setFormData] = useState({
@@ -22,58 +22,84 @@ export function ColdDmGenerator() {
   
   const [generatedMessage, setGeneratedMessage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
   
-  const handleSubmit = () => {
+  const generateWithChatGPT = async () => {
+    if (!apiKey && !showApiKeyInput) {
+      setShowApiKeyInput(true);
+      toast.info("Please enter your OpenAI API key first");
+      return;
+    }
+    
+    if (!formData.name || !formData.companyName || !formData.role) {
+      toast.error("Please fill in the required fields: Name, Company, and Role");
+      return;
+    }
+
     setIsGenerating(true);
     
-    // Simulate AI message generation
-    setTimeout(() => {
-      const tones = {
-        professional: `
-Dear ${formData.name},
-
-I hope this message finds you well. I noticed your impressive work at ${formData.companyName}, particularly in your role as ${formData.role}.
-
-${formData.personalizedNote}
-
-I'd love to connect and potentially discuss how my skills and background might align with your team's needs. Would you be open to a brief conversation?
-
-Thank you for your time and consideration.
-
-Best regards,
-[Your Name]`,
-        friendly: `
-Hi ${formData.name}! 👋
-
-I came across your profile and was really impressed by your work at ${formData.companyName} as a ${formData.role}!
-
-${formData.personalizedNote}
-
-I'd love to chat and learn more about what you're working on these days. Are you free for a quick coffee chat sometime?
-
-Thanks!
-[Your Name]`,
-        direct: `
-${formData.name},
-
-I've researched ${formData.companyName} and your role as ${formData.role}.
-
-${formData.personalizedNote}
-
-I believe I can add immediate value to your team based on my experience with [relevant skills].
-
-Can we schedule a 15-minute call this week?
-
-[Your Name]`
-      };
+    try {
+      const prompt = `
+      Create a personalized cold outreach message for ${formData.platform} with a ${formData.tone} tone.
       
-      setGeneratedMessage(tones[formData.tone as keyof typeof tones]);
+      Details:
+      - Recipient: ${formData.name}
+      - Company: ${formData.companyName}
+      - Their Role: ${formData.role}
+      - Personalized Note: ${formData.personalizedNote || "N/A"}
+      
+      The message should be concise, authentic, and likely to get a response. For LinkedIn, keep it under 300 characters.
+      `;
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert in writing effective cold outreach messages for job seekers.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        toast.error(`API Error: ${data.error.message}`);
+        setIsGenerating(false);
+        return;
+      }
+      
+      const generatedContent = data.choices[0].message.content.trim();
+      setGeneratedMessage(generatedContent);
+      
+    } catch (error) {
+      console.error('Error generating message:', error);
+      toast.error('Failed to generate message. Please try again.');
+    } finally {
       setIsGenerating(false);
-    }, 2000);
+    }
+  };
+  
+  const handleSubmit = () => {
+    generateWithChatGPT();
   };
   
   const copyToClipboard = () => {
@@ -97,6 +123,41 @@ Can we schedule a 15-minute call this week?
           <TabsTrigger value="generator">Cold DM Generator</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
+        
+        {showApiKeyInput && (
+          <Card className="mb-4 border border-neon-purple/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Enter Your OpenAI API Key</CardTitle>
+              <CardDescription>
+                Your API key will be used for this session only and won't be stored permanently
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Input 
+                  type="password" 
+                  placeholder="sk-..." 
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Don't have an API key? Get one from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-neon-purple hover:underline">OpenAI</a>
+                </p>
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowApiKeyInput(false)} 
+                disabled={!apiKey}
+                className="w-full"
+              >
+                Save API Key
+              </Button>
+            </CardFooter>
+          </Card>
+        )}
         
         <TabsContent value="generator" className="space-y-4">
           <Card className="glass-card">
@@ -193,7 +254,14 @@ Can we schedule a 15-minute call this week?
                 disabled={isGenerating} 
                 className="neon-button w-full"
               >
-                {isGenerating ? "Generating..." : "Generate Message"}
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Generating...
+                  </>
+                ) : (
+                  "Generate Message with ChatGPT"
+                )}
               </Button>
             </CardFooter>
           </Card>

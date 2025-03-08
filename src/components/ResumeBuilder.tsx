@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,15 +9,33 @@ import { toast } from 'sonner';
 import { 
   FileEditIcon, 
   FileTextIcon, 
-  Upload, 
   Download, 
   SparklesIcon,
   PlusIcon,
-  Trash2Icon
+  Trash2Icon,
+  Loader2,
+  FileTextIcon
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const RESUME_FORMATS = [
+  { id: 'standard', name: 'Standard', description: 'Clean, professional layout' },
+  { id: 'modern', name: 'Modern', description: 'Contemporary design with accents' },
+  { id: 'minimal', name: 'Minimal', description: 'Simple and elegant design' },
+  { id: 'creative', name: 'Creative', description: 'Unique layout for creative fields' },
+  { id: 'executive', name: 'Executive', description: 'Sophisticated design for leadership positions' },
+  { id: 'technical', name: 'Technical', description: 'Format optimized for technical roles' },
+  { id: 'academic', name: 'Academic', description: 'Format suitable for academic positions' },
+  { id: 'entry-level', name: 'Entry Level', description: 'Format for those with limited experience' },
+];
 
 export function ResumeBuilder() {
   const [activeTab, setActiveTab] = useState("editor");
+  const [selectedFormat, setSelectedFormat] = useState('standard');
+  const [apiKey, setApiKey] = useState('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
+  
   const [resumeData, setResumeData] = useState({
     personalInfo: {
       name: 'John Doe',
@@ -154,14 +171,145 @@ export function ResumeBuilder() {
     });
   };
 
-  const handleAIOptimize = () => {
-    toast.success("Resume optimized with AI");
-    // In a real implementation, this would send the resume data to an AI service
-    // and update with optimized content
+  const handleAIOptimize = async (sectionToOptimize = 'all') => {
+    if (!apiKey && !showApiKeyInput) {
+      setShowApiKeyInput(true);
+      toast.info("Please enter your OpenAI API key first");
+      return;
+    }
+
+    setIsOptimizing(true);
+    toast.info("Optimizing your resume...");
+    
+    try {
+      let promptContent;
+      let updateFunction;
+      
+      if (sectionToOptimize === 'summary') {
+        promptContent = `
+        Optimize this professional summary for a resume. Make it concise, impactful, and ATS-friendly:
+        
+        ${resumeData.summary}
+        
+        Target job: Software Engineer (or similar technical role)
+        `;
+        
+        updateFunction = (optimizedContent) => {
+          setResumeData(prev => ({
+            ...prev,
+            summary: optimizedContent
+          }));
+        };
+      } else {
+        promptContent = `
+        I need to optimize my resume for ATS systems and make it more impactful.
+        
+        Current details:
+        - Name: ${resumeData.personalInfo.name}
+        - Current/Last Role: ${resumeData.workExperience[0]?.title || "Not provided"}
+        - Company: ${resumeData.workExperience[0]?.company || "Not provided"}
+        
+        Here's my current professional summary:
+        ${resumeData.summary}
+        
+        And my latest job description:
+        ${resumeData.workExperience[0]?.description || "Not provided"}
+        
+        Please provide:
+        1. An optimized professional summary (keep it under 3-4 sentences)
+        2. An improved job description for my most recent role (keep it under 3-4 sentences)
+        3. Three suggested bullet points highlighting achievements (with metrics if possible)
+        
+        Format as JSON:
+        {
+          "summary": "optimized summary here",
+          "jobDescription": "improved job description here",
+          "achievements": ["achievement 1", "achievement 2", "achievement 3"]
+        }
+        `;
+        
+        updateFunction = (optimizedContent) => {
+          try {
+            const jsonContent = JSON.parse(optimizedContent);
+            
+            setResumeData(prev => {
+              const updatedWorkExperience = [...prev.workExperience];
+              
+              if (updatedWorkExperience.length > 0) {
+                updatedWorkExperience[0] = {
+                  ...updatedWorkExperience[0],
+                  description: jsonContent.jobDescription,
+                  achievements: jsonContent.achievements
+                };
+              }
+              
+              return {
+                ...prev,
+                summary: jsonContent.summary,
+                workExperience: updatedWorkExperience
+              };
+            });
+          } catch (e) {
+            console.error('Failed to parse JSON response:', e);
+            toast.error('Error processing AI response. Please try again.');
+          }
+        };
+      }
+
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert in resume writing and optimization. You help job seekers create resumes that are ATS-friendly and appealing to hiring managers.'
+            },
+            {
+              role: 'user',
+              content: promptContent
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        toast.error(`API Error: ${data.error.message}`);
+        setIsOptimizing(false);
+        return;
+      }
+      
+      const generatedContent = data.choices[0].message.content.trim();
+      
+      let optimizedContent = generatedContent;
+      if (sectionToOptimize !== 'summary') {
+        const jsonMatch = generatedContent.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          optimizedContent = jsonMatch[0];
+        }
+      }
+      
+      updateFunction(optimizedContent);
+      toast.success(`Resume ${sectionToOptimize === 'summary' ? 'summary' : ''} optimized with AI`);
+      
+    } catch (error) {
+      console.error('Error optimizing resume:', error);
+      toast.error('Failed to optimize resume. Please try again.');
+    } finally {
+      setIsOptimizing(false);
+    }
   };
 
   const downloadResume = () => {
-    toast.success("Resume downloaded");
+    toast.success(`Resume downloaded in ${RESUME_FORMATS.find(f => f.id === selectedFormat)?.name} format`);
     // In a real implementation, this would generate a PDF and trigger download
   };
 
@@ -170,14 +318,106 @@ export function ResumeBuilder() {
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold">Resume Builder</h2>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleAIOptimize}>
-            <SparklesIcon size={14} className="mr-1" />
-            AI Optimize
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => handleAIOptimize()} 
+            disabled={isOptimizing}
+          >
+            {isOptimizing ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                Optimizing...
+              </>
+            ) : (
+              <>
+                <SparklesIcon size={14} className="mr-1" />
+                AI Optimize
+              </>
+            )}
           </Button>
           <Button size="sm" onClick={downloadResume}>
             <Download size={14} className="mr-1" />
             Download
           </Button>
+        </div>
+      </div>
+      
+      {showApiKeyInput && (
+        <Card className="border border-neon-purple/30">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Enter Your OpenAI API Key</CardTitle>
+            <CardDescription>
+              Your API key will be used for this session only and won't be stored permanently
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <Input 
+                type="password" 
+                placeholder="sk-..." 
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Don't have an API key? Get one from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-neon-purple hover:underline">OpenAI</a>
+              </p>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setShowApiKeyInput(false)} 
+              disabled={!apiKey}
+              className="w-full"
+            >
+              Save API Key
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
+      
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-4">
+          <Card className="w-full md:w-2/3">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Choose Resume Format</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select 
+                value={selectedFormat} 
+                onValueChange={setSelectedFormat}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select format" />
+                </SelectTrigger>
+                <SelectContent>
+                  {RESUME_FORMATS.map((format) => (
+                    <SelectItem key={format.id} value={format.id}>
+                      {format.name} - {format.description}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+          
+          <Card className="w-full md:w-1/3">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">Selected Format</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="w-20 h-28 border border-dashed rounded-md mx-auto flex items-center justify-center">
+                  <FileTextIcon className="h-10 w-10 text-muted-foreground" />
+                </div>
+                <p className="mt-2 text-sm font-medium">
+                  {RESUME_FORMATS.find(f => f.id === selectedFormat)?.name}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
       
@@ -194,7 +434,6 @@ export function ResumeBuilder() {
         </TabsList>
         
         <TabsContent value="editor" className="space-y-6 pt-4">
-          {/* Personal Information */}
           <Card>
             <CardHeader>
               <CardTitle>Personal Information</CardTitle>
@@ -256,7 +495,6 @@ export function ResumeBuilder() {
             </CardContent>
           </Card>
           
-          {/* Professional Summary */}
           <Card>
             <CardHeader>
               <CardTitle>Professional Summary</CardTitle>
@@ -271,15 +509,28 @@ export function ResumeBuilder() {
                   onChange={handleSummaryChange}
                   rows={4}
                 />
-                <Button variant="outline" size="sm" onClick={handleAIOptimize}>
-                  <SparklesIcon size={14} className="mr-1" />
-                  AI-Optimize Summary
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleAIOptimize('summary')}
+                  disabled={isOptimizing}
+                >
+                  {isOptimizing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      Optimizing...
+                    </>
+                  ) : (
+                    <>
+                      <SparklesIcon size={14} className="mr-1" />
+                      AI-Optimize Summary
+                    </>
+                  )}
                 </Button>
               </div>
             </CardContent>
           </Card>
           
-          {/* Work Experience */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
@@ -408,12 +659,12 @@ export function ResumeBuilder() {
         <TabsContent value="preview" className="pt-4">
           <Card>
             <CardContent className="p-6">
-              {/* Resume Preview */}
-              <div className="space-y-6">
-                {/* Header */}
-                <div className="text-center space-y-2 pb-4 border-b">
-                  <h1 className="text-2xl font-bold">{resumeData.personalInfo.name}</h1>
-                  <div className="flex flex-wrap justify-center gap-x-4 text-sm text-muted-foreground">
+              <div className={`space-y-6 ${selectedFormat === 'modern' ? 'modern-format' : ''} ${selectedFormat === 'creative' ? 'creative-format' : ''}`}>
+                <div className={`${selectedFormat === 'minimal' ? 'text-left' : 'text-center'} space-y-2 pb-4 border-b ${selectedFormat === 'executive' ? 'border-[#333]' : 'border-gray-200'}`}>
+                  <h1 className={`${selectedFormat === 'executive' ? 'text-3xl uppercase tracking-widest' : 'text-2xl'} font-bold`}>
+                    {resumeData.personalInfo.name}
+                  </h1>
+                  <div className={`flex flex-wrap ${selectedFormat === 'minimal' ? 'justify-start' : 'justify-center'} gap-x-4 text-sm text-muted-foreground`}>
                     <span>{resumeData.personalInfo.email}</span>
                     <span>{resumeData.personalInfo.phone}</span>
                     <span>{resumeData.personalInfo.location}</span>
@@ -422,29 +673,33 @@ export function ResumeBuilder() {
                   </div>
                 </div>
                 
-                {/* Summary */}
                 <div className="space-y-2">
-                  <h2 className="text-lg font-semibold border-b pb-1">Professional Summary</h2>
+                  <h2 className={`text-lg font-semibold border-b pb-1 ${selectedFormat === 'creative' ? 'text-neon-purple' : ''}`}>
+                    Professional Summary
+                  </h2>
                   <p>{resumeData.summary}</p>
                 </div>
                 
-                {/* Work Experience */}
                 <div className="space-y-4">
-                  <h2 className="text-lg font-semibold border-b pb-1">Work Experience</h2>
+                  <h2 className={`text-lg font-semibold border-b pb-1 ${selectedFormat === 'creative' ? 'text-neon-purple' : ''}`}>
+                    Work Experience
+                  </h2>
                   {resumeData.workExperience.map((exp) => (
                     <div key={exp.id} className="space-y-2">
-                      <div className="flex justify-between">
+                      <div className={`${selectedFormat === 'technical' ? 'flex flex-col' : 'flex justify-between'}`}>
                         <div>
-                          <h3 className="font-medium">{exp.title}</h3>
+                          <h3 className={`font-medium ${selectedFormat === 'executive' ? 'uppercase text-lg' : ''}`}>
+                            {exp.title}
+                          </h3>
                           <p className="text-muted-foreground">{exp.company}, {exp.location}</p>
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className={`text-sm text-muted-foreground ${selectedFormat === 'technical' ? 'mt-1' : ''}`}>
                           {exp.startDate} - {exp.current ? 'Present' : exp.endDate}
                         </div>
                       </div>
                       <p>{exp.description}</p>
                       {exp.achievements.length > 0 && (
-                        <ul className="list-disc pl-5 space-y-1">
+                        <ul className={`${selectedFormat === 'technical' ? 'list-disc marker:text-neon-purple' : 'list-disc'} pl-5 space-y-1`}>
                           {exp.achievements.map((achievement, idx) => (
                             achievement.trim() && <li key={idx}>{achievement}</li>
                           ))}
@@ -454,18 +709,21 @@ export function ResumeBuilder() {
                   ))}
                 </div>
                 
-                {/* Education */}
                 {resumeData.education.length > 0 && (
                   <div className="space-y-4">
-                    <h2 className="text-lg font-semibold border-b pb-1">Education</h2>
+                    <h2 className={`text-lg font-semibold border-b pb-1 ${selectedFormat === 'creative' ? 'text-neon-purple' : ''}`}>
+                      Education
+                    </h2>
                     {resumeData.education.map((edu) => (
                       <div key={edu.id} className="space-y-1">
-                        <div className="flex justify-between">
+                        <div className={`${selectedFormat === 'technical' ? 'flex flex-col' : 'flex justify-between'}`}>
                           <div>
-                            <h3 className="font-medium">{edu.degree}</h3>
+                            <h3 className={`font-medium ${selectedFormat === 'academic' ? 'font-bold' : ''}`}>
+                              {edu.degree}
+                            </h3>
                             <p className="text-muted-foreground">{edu.institution}, {edu.location}</p>
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className={`text-sm text-muted-foreground ${selectedFormat === 'technical' ? 'mt-1' : ''}`}>
                             {edu.startDate} - {edu.endDate}
                           </div>
                         </div>
@@ -475,13 +733,14 @@ export function ResumeBuilder() {
                   </div>
                 )}
                 
-                {/* Skills */}
                 {resumeData.skills.length > 0 && (
                   <div className="space-y-2">
-                    <h2 className="text-lg font-semibold border-b pb-1">Skills</h2>
-                    <div className="flex flex-wrap gap-2">
+                    <h2 className={`text-lg font-semibold border-b pb-1 ${selectedFormat === 'creative' ? 'text-neon-purple' : ''}`}>
+                      Skills
+                    </h2>
+                    <div className={`flex flex-wrap gap-2 ${selectedFormat === 'technical' ? 'justify-start' : ''}`}>
                       {resumeData.skills.map((skill, idx) => (
-                        <div key={idx} className="px-2 py-1 bg-muted rounded text-sm">
+                        <div key={idx} className={`px-2 py-1 ${selectedFormat === 'creative' ? 'bg-black/40 border border-neon-purple/30' : 'bg-muted'} rounded text-sm`}>
                           {skill}
                         </div>
                       ))}
