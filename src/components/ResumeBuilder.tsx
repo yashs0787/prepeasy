@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -13,9 +13,13 @@ import {
   SparklesIcon,
   PlusIcon,
   Trash2Icon,
-  Loader2
+  Loader2,
+  UserIcon
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AuthContext } from '@/App';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Link } from 'react-router-dom';
 
 const RESUME_FORMATS = [
   { id: 'standard', name: 'Standard', description: 'Clean, professional layout' },
@@ -29,11 +33,13 @@ const RESUME_FORMATS = [
 ];
 
 export function ResumeBuilder() {
+  const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState("editor");
   const [selectedFormat, setSelectedFormat] = useState('standard');
   const [apiKey, setApiKey] = useState('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [isOptimizing, setIsOptimizing] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   
   const [resumeData, setResumeData] = useState({
     personalInfo: {
@@ -171,6 +177,11 @@ export function ResumeBuilder() {
   };
 
   const handleAIOptimize = async (sectionToOptimize = 'all') => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+
     if (!apiKey && !showApiKeyInput) {
       setShowApiKeyInput(true);
       toast.info("Please enter your OpenAI API key first");

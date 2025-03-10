@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +10,9 @@ import { toast } from "sonner";
 import { ColdDmGenerator } from "@/components/ColdDmGenerator";
 import { useJobs } from '@/hooks/useJobs';
 import { Badge } from "@/components/ui/badge";
-import { Loader2, SendIcon, Sparkles, Upload } from "lucide-react";
+import { Loader2, SendIcon, Sparkles, Upload, UserIcon } from "lucide-react";
+import { AuthContext } from "@/App";
+import { Link } from "react-router-dom";
 
 interface JobApplyModalProps {
   jobId: string;
@@ -19,6 +21,7 @@ interface JobApplyModalProps {
 }
 
 export function JobApplyModal({ jobId, open, onClose }: JobApplyModalProps) {
+  const { user } = useContext(AuthContext);
   const { jobs, updateApplicationStatus } = useJobs();
   const [activeTab, setActiveTab] = useState("apply");
   const [coverLetter, setCoverLetter] = useState("");
@@ -79,6 +82,45 @@ export function JobApplyModal({ jobId, open, onClose }: JobApplyModalProps) {
   };
   
   if (!job) return null;
+
+  // If user is not logged in, show sign in prompt
+  if (!user) {
+    return (
+      <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sign in required</DialogTitle>
+            <DialogDescription>
+              You need to sign in to apply for jobs and access all features.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center justify-center py-6 space-y-4">
+            <UserIcon className="h-12 w-12 text-muted-foreground" />
+            <p className="text-center">
+              Sign in to apply for <span className="font-medium">{job.title}</span> at <span className="font-medium">{job.company}</span>
+            </p>
+          </div>
+          
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            <Button variant="outline" onClick={onClose} className="sm:flex-1">
+              Cancel
+            </Button>
+            <Link to="/signin" className="sm:flex-1 w-full">
+              <Button className="w-full neon-button">
+                Sign In
+              </Button>
+            </Link>
+            <Link to="/signin?tab=signup" className="sm:flex-1 w-full">
+              <Button variant="outline" className="w-full">
+                Sign Up
+              </Button>
+            </Link>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
   
   return (
     <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
