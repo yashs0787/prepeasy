@@ -9,17 +9,13 @@ import { AuthContext } from "@/App";
 export function Navbar() {
   const { user } = useContext(AuthContext);
 
-  const commonNavItems = [
-    { path: "/", label: "Home" }
-  ];
-
-  const authenticatedNavItems = [
+  // Show all navigation items regardless of auth status
+  const navItems = [
+    { path: "/", label: "Home" },
     { path: "/jobs", label: "Jobs" },
     { path: "/resume-builder", label: "Resume Builder" },
     { path: "/dashboard", label: "Dashboard" }
   ];
-
-  const navItems = user ? [...commonNavItems, ...authenticatedNavItems] : commonNavItems;
 
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

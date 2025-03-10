@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -83,20 +82,11 @@ const App = () => {
               <Route path="/" element={<Index />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
+              <Route path="/jobs/*" element={<Jobs />} />
+              <Route path="/jobs/categories/:category" element={<JobCategories />} />
+              <Route path="/resume-builder" element={<ResumeBuilder />} />
               
-              {/* Protected routes - redirect to sign in if not authenticated */}
-              <Route 
-                path="/jobs/*" 
-                element={user ? <Jobs /> : redirectToSignIn()} 
-              />
-              <Route 
-                path="/jobs/categories/:category" 
-                element={user ? <JobCategories /> : redirectToSignIn()} 
-              />
-              <Route 
-                path="/resume-builder" 
-                element={user ? <ResumeBuilder /> : redirectToSignIn()} 
-              />
+              {/* Only Dashboard requires auth */}
               <Route 
                 path="/dashboard" 
                 element={user ? <Dashboard /> : redirectToSignIn()} 
