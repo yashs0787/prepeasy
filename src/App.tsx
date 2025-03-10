@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState, createContext } from "react";
 import { supabase, auth } from "@/lib/supabase";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
 import ResumeBuilder from "./pages/ResumeBuilder";
@@ -17,7 +17,6 @@ import JobCategories from "./pages/JobCategories";
 
 const queryClient = new QueryClient();
 
-// Create auth context
 export const AuthContext = createContext<{
   user: any;
   loading: boolean;
@@ -32,12 +31,10 @@ const App = () => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Force dark mode
   useEffect(() => {
     document.documentElement.classList.add('dark');
   }, []);
 
-  // Check for user on load
   useEffect(() => {
     const checkUser = async () => {
       try {
@@ -52,7 +49,6 @@ const App = () => {
 
     checkUser();
 
-    // Set up auth state listener
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -82,16 +78,30 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/jobs" element={<Jobs />} />
-              <Route path="/jobs/categories/:category" element={<JobCategories />} />
-              <Route path="/resume-builder" element={<ResumeBuilder />} />
-              <Route 
-                path="/dashboard" 
-                element={user ? <Dashboard /> : <Navigate to="/signin" />} 
-              />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              
+              <Route path="/jobs" element={
+                <ProtectedRoute>
+                  <Jobs />
+                </ProtectedRoute>
+              } />
+              <Route path="/jobs/categories/:category" element={
+                <ProtectedRoute>
+                  <JobCategories />
+                </ProtectedRoute>
+              } />
+              <Route path="/resume-builder" element={
+                <ProtectedRoute>
+                  <ResumeBuilder />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

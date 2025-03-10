@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -11,20 +11,30 @@ import {
   BookmarkIcon, 
   BellIcon, 
   MenuIcon,
-  XIcon
+  XIcon,
+  LogOutIcon
 } from 'lucide-react';
+import { AuthContext } from '@/App';
 
 export function NavLinks() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, signOut } = useContext(AuthContext);
   
   const isActive = (path: string) => location.pathname === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsMobileMenuOpen(false);
+  };
   
-  const links = [
+  const links = user ? [
     { icon: HomeIcon, label: 'Home', path: '/' },
     { icon: SearchIcon, label: 'Jobs', path: '/jobs' },
     { icon: BriefcaseIcon, label: 'Dashboard', path: '/dashboard' },
     { icon: BellIcon, label: 'Notifications', path: '/notifications' },
+  ] : [
+    { icon: HomeIcon, label: 'Home', path: '/' },
   ];
   
   return (
@@ -48,16 +58,18 @@ export function NavLinks() {
             </Link>
           </Button>
         ))}
-      </div>
-      
-      {/* Authentication Links */}
-      <div className="hidden md:flex items-center gap-2">
-        <Button variant="outline" size="sm" asChild>
-          <Link to="/signin">Sign In</Link>
-        </Button>
-        <Button size="sm" asChild>
-          <Link to="/signin?tab=signup">Sign Up</Link>
-        </Button>
+        
+        {user && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="gap-2"
+          >
+            <LogOutIcon size={16} />
+            <span>Sign Out</span>
+          </Button>
+        )}
       </div>
       
       {/* Mobile Menu Button */}
@@ -91,14 +103,26 @@ export function NavLinks() {
               </Link>
             </Button>
           ))}
-          <div className="pt-4 mt-4 border-t grid grid-cols-2 gap-2">
-            <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
-              <Link to="/signin">Sign In</Link>
+          
+          {user ? (
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2"
+              onClick={handleSignOut}
+            >
+              <LogOutIcon size={18} />
+              <span>Sign Out</span>
             </Button>
-            <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
-              <Link to="/signin?tab=signup">Sign Up</Link>
-            </Button>
-          </div>
+          ) : (
+            <div className="pt-4 mt-4 border-t grid grid-cols-2 gap-2">
+              <Button variant="outline" asChild onClick={() => setIsMobileMenuOpen(false)}>
+                <Link to="/signin">Sign In</Link>
+              </Button>
+              <Button asChild onClick={() => setIsMobileMenuOpen(false)}>
+                <Link to="/signin?tab=signup">Sign Up</Link>
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </>
