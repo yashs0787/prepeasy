@@ -50,6 +50,12 @@ export function JobApplyModal({ jobId, open, onClose }: JobApplyModalProps) {
   const handleSubmit = async () => {
     if (!job) return;
     
+    // Check for authentication before proceeding
+    if (!user) {
+      toast.error("Please sign in to apply for jobs");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -111,7 +117,7 @@ export function JobApplyModal({ jobId, open, onClose }: JobApplyModalProps) {
                 Sign In
               </Button>
             </Link>
-            <Link to="/signin?tab=signup" className="sm:flex-1 w-full">
+            <Link to="/signup" className="sm:flex-1 w-full">
               <Button variant="outline" className="w-full">
                 Sign Up
               </Button>
