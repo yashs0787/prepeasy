@@ -1,10 +1,15 @@
-import React, { useContext, useRef } from 'react';
+
+import React, { useContext } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { AuthContext } from '@/App';
 import { PersonalInfoSection } from './resume/PersonalInfoSection';
 import { ExperienceSection } from './resume/ExperienceSection';
+import { EducationSection } from './resume/EducationSection';
+import { SkillsSection } from './resume/SkillsSection';
+import { ProjectsSection } from './resume/ProjectsSection';
+import { CertificationsSection } from './resume/CertificationsSection';
 import { ResumePreview } from './resume/ResumePreview';
 import { ResumeSettings } from './resume/ResumeSettings';
 import { AuthDialog } from './resume/AuthDialog';
@@ -76,6 +81,50 @@ export function ResumeBuilder() {
               }
               onAddItem={() => addArrayItem('experience')}
               onRemoveItem={(index) => removeArrayItem('experience', index)}
+            />
+          </Card>
+          
+          <Card>
+            <EducationSection 
+              education={resumeData.education}
+              onArrayInputChange={(index, field, value) => 
+                handleArrayInputChange('education', index, field, value)
+              }
+              onAddItem={() => addArrayItem('education')}
+              onRemoveItem={(index) => removeArrayItem('education', index)}
+            />
+          </Card>
+          
+          <Card>
+            <SkillsSection 
+              skills={resumeData.skills}
+              onArrayInputChange={(index, field, value) => 
+                handleArrayInputChange('skills', index, field, value)
+              }
+              onAddItem={() => addArrayItem('skills')}
+              onRemoveItem={(index) => removeArrayItem('skills', index)}
+            />
+          </Card>
+          
+          <Card>
+            <ProjectsSection 
+              projects={resumeData.projects}
+              onArrayInputChange={(index, field, value) => 
+                handleArrayInputChange('projects', index, field, value)
+              }
+              onAddItem={() => addArrayItem('projects')}
+              onRemoveItem={(index) => removeArrayItem('projects', index)}
+            />
+          </Card>
+          
+          <Card>
+            <CertificationsSection 
+              certifications={resumeData.certifications}
+              onArrayInputChange={(index, field, value) => 
+                handleArrayInputChange('certifications', index, field, value)
+              }
+              onAddItem={() => addArrayItem('certifications')}
+              onRemoveItem={(index) => removeArrayItem('certifications', index)}
             />
           </Card>
           

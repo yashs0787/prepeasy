@@ -76,6 +76,7 @@ export function ResumePreview({
       <CardContent>
         <div ref={resumeRef} className="border rounded-md p-8 bg-white text-black min-h-[800px]">
           <div className="space-y-6">
+            {/* Personal Info Section */}
             <div className="border-b pb-4">
               <h1 className="text-2xl font-bold">{resumeData.personalInfo.name || 'Your Name'}</h1>
               <p className="text-gray-600">{resumeData.personalInfo.title || 'Professional Title'}</p>
@@ -87,32 +88,118 @@ export function ResumePreview({
               </div>
             </div>
             
+            {/* Summary Section */}
             {resumeData.personalInfo.summary && (
               <div>
-                <h2 className="text-lg font-semibold mb-2">Summary</h2>
+                <h2 className="text-lg font-semibold mb-2">Professional Summary</h2>
                 <p>{resumeData.personalInfo.summary}</p>
               </div>
             )}
             
-            <div>
-              <h2 className="text-lg font-semibold mb-2">Experience</h2>
-              {resumeData.experience.map((exp) => (
-                <div key={exp.id} className="mb-4">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium">{exp.title || 'Position Title'}</h3>
-                      <p className="text-gray-600">{exp.company || 'Company Name'}{exp.location ? `, ${exp.location}` : ''}</p>
+            {/* Experience Section */}
+            {resumeData.experience.some(exp => exp.title || exp.company) && (
+              <div>
+                <h2 className="text-lg font-semibold mb-2">Experience</h2>
+                {resumeData.experience.map((exp) => (
+                  exp.title || exp.company ? (
+                    <div key={exp.id} className="mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{exp.title || 'Position Title'}</h3>
+                          <p className="text-gray-600">{exp.company || 'Company Name'}{exp.location ? `, ${exp.location}` : ''}</p>
+                        </div>
+                        <p className="text-sm">
+                          {exp.startDate || 'Start Date'} - {exp.current ? 'Present' : exp.endDate || 'End Date'}
+                        </p>
+                      </div>
+                      {exp.description && <p className="mt-1 text-sm">{exp.description}</p>}
                     </div>
-                    <p className="text-sm">
-                      {exp.startDate || 'Start Date'} - {exp.endDate || 'End Date'}
-                    </p>
-                  </div>
-                  <p className="mt-1 text-sm">{exp.description}</p>
-                </div>
-              ))}
-            </div>
+                  ) : null
+                ))}
+              </div>
+            )}
             
-            {/* Additional sections would be displayed here */}
+            {/* Education Section */}
+            {resumeData.education.some(edu => edu.degree || edu.school) && (
+              <div>
+                <h2 className="text-lg font-semibold mb-2">Education</h2>
+                {resumeData.education.map((edu) => (
+                  edu.degree || edu.school ? (
+                    <div key={edu.id} className="mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{edu.degree || 'Degree'}</h3>
+                          <p className="text-gray-600">{edu.school || 'School'}{edu.location ? `, ${edu.location}` : ''}</p>
+                        </div>
+                        <p className="text-sm">
+                          {edu.startDate || 'Start Date'} - {edu.endDate || 'End Date'}
+                        </p>
+                      </div>
+                      {edu.description && <p className="mt-1 text-sm">{edu.description}</p>}
+                    </div>
+                  ) : null
+                ))}
+              </div>
+            )}
+            
+            {/* Skills Section */}
+            {resumeData.skills.some(skill => skill.name) && (
+              <div>
+                <h2 className="text-lg font-semibold mb-2">Skills</h2>
+                <div className="flex flex-wrap gap-2">
+                  {resumeData.skills
+                    .filter(skill => skill.name)
+                    .map((skill) => (
+                      <span key={skill.id} className="bg-gray-100 px-2 py-1 rounded text-sm">
+                        {skill.name}
+                      </span>
+                    ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Projects Section */}
+            {resumeData.projects.some(proj => proj.title) && (
+              <div>
+                <h2 className="text-lg font-semibold mb-2">Projects</h2>
+                {resumeData.projects.map((proj) => (
+                  proj.title ? (
+                    <div key={proj.id} className="mb-4">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-medium">{proj.title}</h3>
+                        {proj.link && (
+                          <a href={proj.link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
+                            View Project
+                          </a>
+                        )}
+                      </div>
+                      {proj.description && <p className="mt-1 text-sm">{proj.description}</p>}
+                    </div>
+                  ) : null
+                ))}
+              </div>
+            )}
+            
+            {/* Certifications Section */}
+            {resumeData.certifications.some(cert => cert.name) && (
+              <div>
+                <h2 className="text-lg font-semibold mb-2">Certifications</h2>
+                {resumeData.certifications.map((cert) => (
+                  cert.name ? (
+                    <div key={cert.id} className="mb-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{cert.name}</h3>
+                          {cert.issuer && <p className="text-gray-600">{cert.issuer}</p>}
+                        </div>
+                        {cert.date && <p className="text-sm">{cert.date}</p>}
+                      </div>
+                      {cert.description && <p className="mt-1 text-sm">{cert.description}</p>}
+                    </div>
+                  ) : null
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
