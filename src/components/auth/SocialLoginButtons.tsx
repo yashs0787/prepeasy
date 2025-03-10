@@ -1,6 +1,8 @@
 
 import { Button } from "@/components/ui/button";
 import { GithubIcon, LinkedinIcon } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 // Custom Google icon since it's not available in lucide-react
 const CustomGoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -16,6 +18,26 @@ interface SocialLoginButtonsProps {
 }
 
 export function SocialLoginButtons({ onSocialLogin }: SocialLoginButtonsProps) {
+  const handleSocialLogin = async (provider: 'google' | 'github' | 'linkedin_oidc') => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`
+        }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // This is just for the callback since the actual redirect is handled by Supabase
+      onSocialLogin(provider);
+    } catch (error: any) {
+      toast.error(`Error signing in with ${provider}: ${error.message}`);
+    }
+  };
+
   return (
     <>
       <div className="relative my-4">
@@ -31,7 +53,7 @@ export function SocialLoginButtons({ onSocialLogin }: SocialLoginButtonsProps) {
         <Button
           variant="outline"
           type="button"
-          onClick={() => onSocialLogin("Google")}
+          onClick={() => handleSocialLogin('google')}
         >
           <CustomGoogleIcon className="h-4 w-4 mr-2" />
           Google
@@ -39,7 +61,7 @@ export function SocialLoginButtons({ onSocialLogin }: SocialLoginButtonsProps) {
         <Button
           variant="outline"
           type="button"
-          onClick={() => onSocialLogin("LinkedIn")}
+          onClick={() => handleSocialLogin('linkedin_oidc')}
         >
           <LinkedinIcon className="h-4 w-4 mr-2" />
           LinkedIn
@@ -47,7 +69,7 @@ export function SocialLoginButtons({ onSocialLogin }: SocialLoginButtonsProps) {
         <Button
           variant="outline"
           type="button"
-          onClick={() => onSocialLogin("GitHub")}
+          onClick={() => handleSocialLogin('github')}
         >
           <GithubIcon className="h-4 w-4 mr-2" />
           GitHub

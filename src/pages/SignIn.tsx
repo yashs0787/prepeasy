@@ -1,13 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
-import { auth } from "@/lib/supabase";
+import { auth, supabase } from "@/lib/supabase";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -18,6 +18,36 @@ export default function SignIn() {
     name: "",
     confirmPassword: "",
   });
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const { data } = await auth.getCurrentUser();
+        if (data.user) {
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        // User not logged in, stay on signin page
+      }
+    };
+    
+    checkUser();
+    
+    // Set up auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          toast.success("Login successful!");
+          navigate("/dashboard");
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -32,8 +62,7 @@ export default function SignIn() {
     try {
       const { error } = await auth.signIn(formData.email, formData.password);
       if (error) throw error;
-      toast.success("Login successful!");
-      navigate("/dashboard");
+      // Toast and redirect handled by auth state listener
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -56,7 +85,8 @@ export default function SignIn() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    toast.info(`${provider} login coming soon`);
+    // This just shows a toast, the actual redirect is handled in SocialLoginButtons
+    toast.info(`Redirecting to ${provider} login...`);
   };
 
   return (
