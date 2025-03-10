@@ -9,6 +9,18 @@ import { AuthContext } from "@/App";
 export function Navbar() {
   const { user } = useContext(AuthContext);
 
+  const commonNavItems = [
+    { path: "/", label: "Home" }
+  ];
+
+  const authenticatedNavItems = [
+    { path: "/jobs", label: "Jobs" },
+    { path: "/resume-builder", label: "Resume Builder" },
+    { path: "/dashboard", label: "Dashboard" }
+  ];
+
+  const navItems = user ? [...commonNavItems, ...authenticatedNavItems] : commonNavItems;
+
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
@@ -17,28 +29,18 @@ export function Navbar() {
             <Zap className="h-6 w-6 text-neon-purple" />
             <span className="font-bold text-xl gradient-text">ApplyGo</span>
           </Link>
-          {user ? (
-            <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="font-medium transition-colors hover:text-neon-purple">
-                Home
+          
+          <nav className="hidden md:flex items-center gap-6">
+            {navItems.map(item => (
+              <Link 
+                key={item.path}
+                to={item.path} 
+                className="font-medium transition-colors hover:text-neon-purple"
+              >
+                {item.label}
               </Link>
-              <Link to="/jobs" className="font-medium transition-colors hover:text-neon-purple">
-                Jobs
-              </Link>
-              <Link to="/resume-builder" className="font-medium transition-colors hover:text-neon-purple">
-                Resume Builder
-              </Link>
-              <Link to="/dashboard" className="font-medium transition-colors hover:text-neon-purple">
-                Dashboard
-              </Link>
-            </nav>
-          ) : (
-            <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="font-medium transition-colors hover:text-neon-purple">
-                Home
-              </Link>
-            </nav>
-          )}
+            ))}
+          </nav>
         </div>
         
         <div className="flex items-center gap-4">
@@ -63,7 +65,6 @@ export function Navbar() {
             </>
           )}
           
-          {/* Mobile menu */}
           <div className="md:hidden">
             <NavLinks />
           </div>

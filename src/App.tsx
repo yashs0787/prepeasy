@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState, createContext } from "react";
 import { supabase, auth } from "@/lib/supabase";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Jobs from "./pages/Jobs";
 import ResumeBuilder from "./pages/ResumeBuilder";
@@ -69,6 +69,8 @@ const App = () => {
     setUser(null);
   };
 
+  const redirectToSignIn = () => <Navigate to="/signin" replace />;
+
   return (
     <AuthContext.Provider value={{ user, loading, signOut }}>
       <QueryClientProvider client={queryClient}>
@@ -77,30 +79,28 @@ const App = () => {
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Public routes */}
               <Route path="/" element={<Index />} />
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               
-              <Route path="/jobs" element={
-                <ProtectedRoute>
-                  <Jobs />
-                </ProtectedRoute>
-              } />
-              <Route path="/jobs/categories/:category" element={
-                <ProtectedRoute>
-                  <JobCategories />
-                </ProtectedRoute>
-              } />
-              <Route path="/resume-builder" element={
-                <ProtectedRoute>
-                  <ResumeBuilder />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
+              {/* Protected routes - redirect to sign in if not authenticated */}
+              <Route 
+                path="/jobs/*" 
+                element={user ? <Jobs /> : redirectToSignIn()} 
+              />
+              <Route 
+                path="/jobs/categories/:category" 
+                element={user ? <JobCategories /> : redirectToSignIn()} 
+              />
+              <Route 
+                path="/resume-builder" 
+                element={user ? <ResumeBuilder /> : redirectToSignIn()} 
+              />
+              <Route 
+                path="/dashboard" 
+                element={user ? <Dashboard /> : redirectToSignIn()} 
+              />
               
               <Route path="*" element={<NotFound />} />
             </Routes>
