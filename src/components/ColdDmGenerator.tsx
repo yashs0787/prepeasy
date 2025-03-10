@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Copy, Sparkles, CheckCheck, Send, Loader2 } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 interface ColdDmGeneratorProps {
   initialValues?: {
@@ -56,13 +56,7 @@ export function ColdDmGenerator({ initialValues, compact = false, jobTitle }: Co
     setFormData(prev => ({ ...prev, [field]: value }));
   };
   
-  const generateWithChatGPT = async () => {
-    if (!apiKey && !showApiKeyInput) {
-      setShowApiKeyInput(true);
-      toast.info("Please enter your OpenAI API key first");
-      return;
-    }
-    
+  const generateWithClaude = async () => {
     if (!formData.name || !formData.companyName || !formData.role) {
       toast.error("Please fill in the required fields: Name, Company, and Role");
       return;
@@ -71,52 +65,21 @@ export function ColdDmGenerator({ initialValues, compact = false, jobTitle }: Co
     setIsGenerating(true);
     
     try {
-      const prompt = `
-      Create a personalized cold outreach message for ${formData.platform} with a ${formData.tone} tone.
-      
-      Details:
-      - Recipient: ${formData.name}
-      - Company: ${formData.companyName}
-      - Their Role: ${formData.role}
-      ${jobTitle ? `- Job Title I'm Applying For: ${jobTitle}` : ''}
-      - Personalized Note: ${formData.personalizedNote || "N/A"}
-      
-      The message should be concise, authentic, and likely to get a response. For LinkedIn, keep it under 300 characters.
-      `;
-
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert in writing effective cold outreach messages for job seekers.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 500
-        })
+      const response = await supabase.functions.invoke('generate-message', {
+        body: {
+          name: formData.name,
+          company: formData.companyName,
+          role: formData.role,
+          tone: formData.tone,
+          platform: formData.platform,
+          personalizedNote: formData.personalizedNote,
+          jobTitle: jobTitle
+        }
       });
+
+      if (response.error) throw new Error(response.error.message);
       
-      const data = await response.json();
-      
-      if (data.error) {
-        toast.error(`API Error: ${data.error.message}`);
-        setIsGenerating(false);
-        return;
-      }
-      
-      const generatedContent = data.choices[0].message.content.trim();
-      setGeneratedMessage(generatedContent);
+      setGeneratedMessage(response.data.message);
       
     } catch (error) {
       console.error('Error generating message:', error);
@@ -127,7 +90,7 @@ export function ColdDmGenerator({ initialValues, compact = false, jobTitle }: Co
   };
   
   const handleSubmit = () => {
-    generateWithChatGPT();
+    generateWithClaude();
   };
   
   const copyToClipboard = () => {

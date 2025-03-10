@@ -1,13 +1,16 @@
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
+import { auth } from "@/lib/supabase";
 
 export default function SignIn() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("login");
   const [formData, setFormData] = useState({
     email: "",
@@ -24,25 +27,36 @@ export default function SignIn() {
     });
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Login successful!");
-    // In a real app, this would authenticate the user
+    try {
+      const { error } = await auth.signIn(formData.email, formData.password);
+      if (error) throw error;
+      toast.success("Login successful!");
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
-    toast.success("Account created successfully!");
-    // In a real app, this would create a new user account
+    try {
+      const { error } = await auth.signUp(formData.email, formData.password, formData.name);
+      if (error) throw error;
+      toast.success("Account created successfully! Please check your email to verify your account.");
+      setActiveTab("login");
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   const handleSocialLogin = (provider: string) => {
-    toast.success(`Logging in with ${provider}`);
-    // In a real app, this would initiate OAuth flow
+    toast.info(`${provider} login coming soon`);
   };
 
   return (
@@ -78,7 +92,7 @@ export default function SignIn() {
             <CardHeader>
               <CardTitle>Create an account</CardTitle>
               <CardDescription>
-                Sign up to get started with JobSeek
+                Sign up to get started with ApplyGo
               </CardDescription>
             </CardHeader>
             <CardContent>
