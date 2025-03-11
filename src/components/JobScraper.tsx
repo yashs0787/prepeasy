@@ -16,6 +16,7 @@ export function JobScraper() {
   const [keywords, setKeywords] = useState("software developer");
   const [location, setLocation] = useState("remote");
   const [source, setSource] = useState("linkedin");
+  const [scrapeService, setScrapeService] = useState("apify");
   const [scrapedJobs, setScrapedJobs] = useState<Job[]>([]);
   
   const handleScrape = async () => {
@@ -24,7 +25,7 @@ export function JobScraper() {
     
     try {
       const { data, error } = await supabase.functions.invoke('job-scraper', {
-        body: { source, keywords, location }
+        body: { source, keywords, location, scrapeService }
       });
       
       if (error) throw error;
@@ -72,6 +73,19 @@ export function JobScraper() {
             </div>
             
             <div className="space-y-2">
+              <Label htmlFor="scrapeService">Scraping Service</Label>
+              <Select value={scrapeService} onValueChange={setScrapeService}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select service" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="apify">Apify</SelectItem>
+                  <SelectItem value="brightdata">BrightData</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
               <Label htmlFor="keywords">Keywords</Label>
               <Input 
                 id="keywords"
@@ -81,7 +95,7 @@ export function JobScraper() {
               />
             </div>
             
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="location">Location</Label>
               <Input 
                 id="location"
