@@ -25,6 +25,9 @@ export function SkillsSection({
   onAddItem, 
   onRemoveItem 
 }: SkillsSectionProps) {
+  // Filter out empty skills for badge display
+  const displaySkills = skills.filter(skill => skill.name.trim() !== '');
+  
   return (
     <>
       <CardHeader>
@@ -44,30 +47,33 @@ export function SkillsSection({
         <CardDescription>List your professional skills and competencies</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {skills.map((skill, index) => (
-            skill.name && (
+        {displaySkills.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {displaySkills.map((skill, index) => (
               <Badge 
                 key={skill.id} 
                 variant="secondary" 
-                className="px-3 py-1 text-xs flex items-center gap-1"
+                className="px-3 py-1 text-sm flex items-center gap-1"
               >
                 {skill.name}
                 <button 
                   onClick={() => onRemoveItem(index)} 
                   className="text-gray-500 hover:text-gray-700 ml-1"
+                  aria-label="Remove skill"
                 >
                   ×
                 </button>
               </Badge>
-            )
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {skills.map((skill, index) => (
             <div key={skill.id} className="space-y-2">
-              <Label htmlFor={`skill-${index}`} className="sr-only">Skill</Label>
+              <Label htmlFor={`skill-${index}`}>
+                {index < 3 ? `Skill ${index + 1}` : `Additional Skill`}
+              </Label>
               <div className="flex items-center space-x-2">
                 <Input 
                   id={`skill-${index}`} 
@@ -81,9 +87,9 @@ export function SkillsSection({
                     variant="ghost" 
                     size="sm"
                     onClick={() => onRemoveItem(index)}
-                    className="h-8 px-2 text-destructive hover:text-destructive"
+                    className="h-9 px-2 text-destructive hover:text-destructive"
                   >
-                    <Trash2Icon className="h-3.5 w-3.5" />
+                    <Trash2Icon className="h-4 w-4" />
                   </Button>
                 )}
               </div>
