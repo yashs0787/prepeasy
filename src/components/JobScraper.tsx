@@ -120,7 +120,7 @@ export function JobScraper() {
                       Source: {job.source}
                     </span>
                     <Button variant="outline" size="sm" asChild>
-                      <a href={job.url} target="_blank" rel="noopener noreferrer">View Job</a>
+                      <a href={job.applyUrl} target="_blank" rel="noopener noreferrer">View Job</a>
                     </Button>
                   </div>
                 </div>
