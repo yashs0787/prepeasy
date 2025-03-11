@@ -46,11 +46,31 @@ export async function processAndStoreJobs(jobs: any[]) {
   // Create the Supabase client
   const supabase = await createSupabaseClient();
   
-  // Store jobs in the database
-  const result = await storeJobs(jobs, supabase);
+  // Process the jobs to add additional fields for categorization
+  const processedJobs = jobs.map(job => {
+    // Add category based on job title or description
+    let category = 'Other';
+    if (/developer|engineer|programmer|coding/i.test(job.title || '')) {
+      category = 'Engineering';
+    } else if (/design|ux|ui|graphic/i.test(job.title || '')) {
+      category = 'Design';
+    } else if (/marketing|seo|content|social media/i.test(job.title || '')) {
+      category = 'Marketing';
+    } else if (/sales|account|business development/i.test(job.title || '')) {
+      category = 'Sales';
+    } else if (/product|manager|project|program/i.test(job.title || '')) {
+      category = 'Product';
+    }
+    
+    return {
+      ...job,
+      category,
+      timestamp: new Date().toISOString()
+    };
+  });
   
-  return {
-    message: `Scraped ${jobs.length} jobs, inserted ${result.inserted} new jobs`,
-    jobs: jobs
-  };
+  // Store jobs in the database
+  const result = await storeJobs(processedJobs, supabase);
+  
+  return processedJobs;
 }

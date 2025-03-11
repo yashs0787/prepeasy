@@ -26,7 +26,7 @@ export function JobScraper() {
     try {
       const { data, error } = await supabase.functions.invoke('job-scraper', {
         body: {
-          source,
+          source: source === 'all' ? 'all' : source,
           keywords,
           location,
           scrapeService: 'apify' // Default to apify as the scraper service
@@ -55,14 +55,14 @@ export function JobScraper() {
     <div className="space-y-6">
       <h2 className="text-2xl font-semibold">Job Scraper</h2>
       
-      <Card>
+      <Card className="bg-background/50 backdrop-blur-sm border-gray-800">
         <CardHeader>
           <CardTitle>Find New Jobs</CardTitle>
           <CardDescription>
             Use our automatic job scraper to find new job opportunities
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="keywords">Job Keywords</Label>
             <Input 
@@ -70,6 +70,7 @@ export function JobScraper() {
               placeholder="React Developer, Frontend Engineer, etc."
               value={keywords}
               onChange={(e) => setKeywords(e.target.value)}
+              className="bg-background/50"
             />
           </div>
           
@@ -80,6 +81,7 @@ export function JobScraper() {
               placeholder="Remote, New York, San Francisco, etc."
               value={location}
               onChange={(e) => setLocation(e.target.value)}
+              className="bg-background/50"
             />
           </div>
           
@@ -89,19 +91,20 @@ export function JobScraper() {
               value={source} 
               onValueChange={setSource}
             >
-              <SelectTrigger id="source">
+              <SelectTrigger id="source" className="bg-background/50">
                 <SelectValue placeholder="Select a job source" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="linkedin">LinkedIn</SelectItem>
-                <SelectItem value="indeed">Indeed</SelectItem>
-                <SelectItem value="glassdoor">Glassdoor</SelectItem>
+                <SelectItem value="twitter">Twitter (X)</SelectItem>
+                <SelectItem value="reddit">Reddit</SelectItem>
+                <SelectItem value="all">All Sources</SelectItem>
               </SelectContent>
             </Select>
           </div>
           
           <Button 
-            className="w-full mt-2" 
+            className="w-full bg-primary text-primary-foreground hover:bg-primary/90" 
             onClick={handleScrapeJobs}
             disabled={isLoading}
           >
