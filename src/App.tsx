@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { createClient } from '@supabase/supabase-js';
@@ -37,16 +38,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const navigate = useNavigate();
 
   useEffect(() => {
-    const session = supabase.auth.getSession()
+    // Check for existing session
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (data.session?.user) {
+        setUser(data.session.user);
+      }
+      setIsLoading(false);
+    };
+    
+    checkSession();
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    // Subscribe to auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser(session.user);
       } else {
         setUser(null);
       }
       setIsLoading(false);
-    })
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
@@ -134,10 +149,8 @@ const ProtectedRoute: React.FC<{ children: ReactNode }> = ({ children }) => {
 };
 
 function App() {
-  const { user, isLoading, signIn, signUp, signOut } = useAuth();
-
   return (
-    <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut }}>
+    <AuthProvider>
       <SubscriptionProvider>
         <div className="min-h-screen">
           <Toaster />
@@ -161,7 +174,7 @@ function App() {
           <SubscriptionModal />
         </div>
       </SubscriptionProvider>
-    </AuthContext.Provider>
+    </AuthProvider>
   );
 }
 

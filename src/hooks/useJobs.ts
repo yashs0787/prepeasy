@@ -28,7 +28,45 @@ const mockJobs: Job[] = [
       platform: 'linkedin'
     }
   },
-  // Add more mock jobs as needed
+  // Add more mock jobs here...
+  {
+    id: '2',
+    title: 'UX Designer',
+    company: 'DesignStudio',
+    location: 'New York, NY',
+    description: 'Looking for a talented UX Designer to create intuitive and engaging user experiences.',
+    salary: '$70,000 - $90,000',
+    jobType: 'Full-time',
+    workType: 'Hybrid',
+    postedAt: '2023-04-20',
+    skills: ['Figma', 'Adobe XD', 'User Research', 'Prototyping'],
+    source: 'Indeed',
+    isSaved: false,
+    applicationStatus: null,
+    category: 'Design',
+    experienceLevel: 'Senior',
+    industry: 'Creative',
+    hiringManager: null
+  },
+  {
+    id: '3',
+    title: 'Backend Developer',
+    company: 'ServerSystems',
+    location: 'Remote',
+    description: 'Join our team to build scalable and efficient backend services.',
+    salary: '$90,000 - $130,000',
+    jobType: 'Full-time',
+    workType: 'Remote',
+    postedAt: '2023-04-18',
+    skills: ['Node.js', 'Python', 'MongoDB', 'AWS'],
+    source: 'LinkedIn',
+    isSaved: false,
+    applicationStatus: null,
+    category: 'Engineering',
+    experienceLevel: 'Mid-level',
+    industry: 'Technology',
+    hiringManager: null
+  }
 ];
 
 interface UseJobsOptions {
