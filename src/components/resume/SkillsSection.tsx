@@ -25,7 +25,7 @@ export function SkillsSection({
   onAddItem, 
   onRemoveItem 
 }: SkillsSectionProps) {
-  // Filter out empty skills for badge display
+  // Filter out empty skills for display purposes only
   const displaySkills = skills.filter(skill => skill.name.trim() !== '');
   
   return (
@@ -49,22 +49,26 @@ export function SkillsSection({
       <CardContent>
         {displaySkills.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {displaySkills.map((skill, index) => (
-              <Badge 
-                key={skill.id} 
-                variant="secondary" 
-                className="px-3 py-1 text-sm flex items-center gap-1"
-              >
-                {skill.name}
-                <button 
-                  onClick={() => onRemoveItem(index)} 
-                  className="text-gray-500 hover:text-gray-700 ml-1"
-                  aria-label="Remove skill"
+            {displaySkills.map((skill) => {
+              // Find the index in the original array
+              const originalIndex = skills.findIndex(s => s.id === skill.id);
+              return (
+                <Badge 
+                  key={skill.id} 
+                  variant="secondary" 
+                  className="px-3 py-1 text-sm flex items-center gap-1"
                 >
-                  ×
-                </button>
-              </Badge>
-            ))}
+                  {skill.name}
+                  <button 
+                    onClick={() => onRemoveItem(originalIndex)} 
+                    className="text-gray-500 hover:text-gray-700 ml-1"
+                    aria-label="Remove skill"
+                  >
+                    ×
+                  </button>
+                </Badge>
+              );
+            })}
           </div>
         )}
         
