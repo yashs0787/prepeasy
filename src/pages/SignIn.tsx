@@ -1,17 +1,21 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
-import { auth, supabase } from "@/lib/supabase";
+import { useAuth } from "@/App";
+import { supabase } from "@/lib/supabase";
 
 export default function SignIn() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("login");
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') === 'signup' ? 'signup' : 'login';
+  const [activeTab, setActiveTab] = useState(defaultTab);
+  const { user, isLoading, signIn, signUp } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,20 +25,11 @@ export default function SignIn() {
 
   // Check if user is already logged in
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data } = await auth.getCurrentUser();
-        if (data.user) {
-          navigate("/dashboard");
-        }
-      } catch (error) {
-        // User not logged in, stay on signin page
-      }
-    };
+    if (user) {
+      navigate("/dashboard");
+    }
     
-    checkUser();
-    
-    // Set up auth state listener
+    // Set up auth state listener for social logins
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -47,7 +42,7 @@ export default function SignIn() {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,9 +55,8 @@ export default function SignIn() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await auth.signIn(formData.email, formData.password);
-      if (error) throw error;
-      // Toast and redirect handled by auth state listener
+      await signIn(formData.email, formData.password);
+      // Toast and redirect handled by auth context
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -75,10 +69,8 @@ export default function SignIn() {
       return;
     }
     try {
-      const { error } = await auth.signUp(formData.email, formData.password, formData.name);
-      if (error) throw error;
-      toast.success("Account created successfully! Please check your email to verify your account.");
-      setActiveTab("login");
+      await signUp(formData.email, formData.password, formData.name);
+      toast.success("Account created successfully!");
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -89,9 +81,19 @@ export default function SignIn() {
     toast.info(`Redirecting to ${provider} login...`);
   };
 
+  if (isLoading) {
+    return (
+      <AuthLayout>
+        <div className="flex items-center justify-center h-40">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+      </AuthLayout>
+    );
+  }
+
   return (
     <AuthLayout>
-      <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="login">Login</TabsTrigger>
           <TabsTrigger value="signup">Sign Up</TabsTrigger>
