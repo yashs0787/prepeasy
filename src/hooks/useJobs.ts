@@ -31,10 +31,17 @@ const mockJobs: Job[] = [
   // Add more mock jobs as needed
 ];
 
-export const useJobs = () => {
+interface UseJobsOptions {
+  initialFilters?: any;
+}
+
+export const useJobs = (options?: UseJobsOptions) => {
   const [jobs, setJobs] = useState<Job[]>(mockJobs);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const [filters, setFilters] = useState(options?.initialFilters || {});
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
   const updateApplicationStatus = (jobId: string, status: ApplicationStatus) => {
     setJobs(prevJobs => 
@@ -56,12 +63,30 @@ export const useJobs = () => {
     
     toast.success(`Job ${action} saved jobs`);
   };
+  
+  const toggleSaveJob = (jobId: string) => {
+    saveJob(jobId);
+  };
+  
+  const selectedJob = selectedJobId ? jobs.find(job => job.id === selectedJobId) || null : null;
+  
+  // For compatibility with existing code
+  const isLoading = loading;
 
   return {
     jobs,
     loading,
     error,
+    isLoading,
     updateApplicationStatus,
-    saveJob
+    saveJob,
+    query,
+    setQuery,
+    filters,
+    setFilters,
+    selectedJobId,
+    setSelectedJobId,
+    toggleSaveJob,
+    selectedJob
   };
 };
