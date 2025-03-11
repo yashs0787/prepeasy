@@ -1,4 +1,3 @@
-
 import React, { useContext } from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,6 +13,7 @@ import { ResumePreview } from './resume/ResumePreview';
 import { ResumeSettings } from './resume/ResumeSettings';
 import { AuthDialog } from './resume/AuthDialog';
 import { useResumeState } from './resume/useResumeState';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 const RESUME_FORMATS = [
   { id: 'standard', name: 'Standard', description: 'Clean, professional layout' },
@@ -27,6 +27,7 @@ const RESUME_FORMATS = [
 
 export function ResumeBuilder() {
   const { user } = useContext(AuthContext);
+  const { isSubscribed, setShowSubscribeModal } = useSubscription();
   const {
     resumeData,
     activeTab,
@@ -51,6 +52,12 @@ export function ResumeBuilder() {
       setShowAuthDialog(true);
       return;
     }
+    
+    if (!isSubscribed && (callback === handleDownloadResume || callback === handleAIOptimize)) {
+      setShowSubscribeModal(true);
+      return;
+    }
+    
     callback();
   };
 

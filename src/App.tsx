@@ -1,105 +1,168 @@
+import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
+import { Toaster } from '@/components/ui/toaster';
+import Index from '@/pages/Index';
+import SignIn from '@/pages/SignIn';
+import SignUp from '@/pages/SignUp';
+import Jobs from '@/pages/Jobs';
+import JobCategories from '@/pages/JobCategories';
+import ResumeBuilderPage from '@/pages/ResumeBuilder';
+import Dashboard from '@/pages/Dashboard';
+import NotFound from '@/pages/NotFound';
+import { SubscriptionProvider } from './contexts/SubscriptionContext';
+import { SubscriptionModal } from './components/subscription/SubscriptionModal';
 
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState, createContext } from "react";
-import { supabase, auth } from "@/lib/supabase";
-import Index from "./pages/Index";
-import Jobs from "./pages/Jobs";
-import ResumeBuilder from "./pages/ResumeBuilder";
-import Dashboard from "./pages/Dashboard";
-import SignIn from "./pages/SignIn";
-import SignUp from "./pages/SignUp";
-import NotFound from "./pages/NotFound";
-import JobCategories from "./pages/JobCategories";
+const supabaseUrl = 'https://hoynmqejkchppvllpuim.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhveW5tcWVqa2NocHB2bGxwdWltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDExNTM1OTEsImV4cCI6MjA1NjcyOTU5MX0.YN3B-jv31yfRh46WTwnM5ssHWnVgrl2ah1krAV-JA5k';
 
-const queryClient = new QueryClient();
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export const AuthContext = createContext<{
+// Define the AuthContext type
+interface AuthContextType {
   user: any;
-  loading: boolean;
+  isLoading: boolean;
+  signIn: (email: string, password: string) => Promise<any>;
+  signUp: (email: string, password: string, fullName: string) => Promise<any>;
   signOut: () => Promise<void>;
-}>({
-  user: null,
-  loading: true,
-  signOut: async () => {}
-});
+}
 
-const App = () => {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+// Create the AuthContext
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
+// AuthProvider component
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data } = await auth.getCurrentUser();
-        setUser(data.user);
-      } catch (error) {
-        console.error("Error checking auth:", error);
-      } finally {
-        setLoading(false);
+    const session = supabase.auth.getSession()
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+      } else {
+        setUser(null);
       }
-    };
-
-    checkUser();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          setUser(session.user);
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-        }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+      setIsLoading(false);
+    })
   }, []);
 
-  const signOut = async () => {
-    await auth.signOut();
-    setUser(null);
+  const signIn = async (email: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        throw error;
+      }
+      setUser(data.user);
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Sign-in error:', error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const redirectToSignIn = () => <Navigate to="/signin" replace />;
+  const signUp = async (email: string, password: string, fullName: string) => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+      if (error) {
+        throw error;
+      }
+      setUser(data.user);
+      navigate('/dashboard');
+    } catch (error: any) {
+      console.error('Sign-up error:', error.message);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    setIsLoading(true);
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      navigate('/');
+    } catch (error: any) {
+      console.error('Sign-out error:', error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const value = { user, isLoading, signIn, signUp, signOut };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+// Custom hook to use the AuthContext
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+// ProtectedRoute component
+const ProtectedRoute: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/signin" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+function App() {
+  const { user, isLoading, signIn, signUp, signOut } = useAuth();
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
+    <AuthContext.Provider value={{ user, isLoading, signIn, signUp, signOut }}>
+      <SubscriptionProvider>
+        <div className="min-h-screen">
           <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/signin" element={<SignIn />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/jobs/*" element={<Jobs />} />
-              <Route path="/jobs/categories/:category" element={<JobCategories />} />
-              <Route path="/resume-builder" element={<ResumeBuilder />} />
-              
-              {/* Only Dashboard requires auth */}
-              <Route 
-                path="/dashboard" 
-                element={user ? <Dashboard /> : redirectToSignIn()} 
-              />
-              
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/jobs" element={<Jobs />} />
+            <Route path="/jobs/categories/:category" element={<JobCategories />} />
+            <Route path="/resume-builder" element={<ResumeBuilderPage />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          <SubscriptionModal />
+        </div>
+      </SubscriptionProvider>
     </AuthContext.Provider>
   );
-};
+}
 
 export default App;

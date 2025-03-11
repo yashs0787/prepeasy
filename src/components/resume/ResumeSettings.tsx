@@ -3,7 +3,8 @@ import React from 'react';
 import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { FileTextIcon, CheckIcon, SparklesIcon, Loader2, DownloadIcon } from 'lucide-react';
+import { FileTextIcon, CheckIcon, SparklesIcon, Loader2, DownloadIcon, LockIcon } from 'lucide-react';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface ResumeFormat {
   id: string;
@@ -30,6 +31,24 @@ export function ResumeSettings({
   onPreview,
   onDownload
 }: ResumeSettingsProps) {
+  const { isSubscribed, setShowSubscribeModal } = useSubscription();
+
+  const handleOptimize = () => {
+    if (isSubscribed) {
+      onOptimize();
+    } else {
+      setShowSubscribeModal(true);
+    }
+  };
+
+  const handleDownload = () => {
+    if (isSubscribed) {
+      onDownload();
+    } else {
+      setShowSubscribeModal(true);
+    }
+  };
+
   return (
     <>
       <Card>
@@ -69,7 +88,7 @@ export function ResumeSettings({
         <CardContent className="space-y-4">
           <Button 
             className="w-full" 
-            onClick={onOptimize}
+            onClick={handleOptimize}
             disabled={isOptimizing}
           >
             {isOptimizing ? (
@@ -77,10 +96,15 @@ export function ResumeSettings({
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" /> 
                 Optimizing...
               </>
-            ) : (
+            ) : isSubscribed ? (
               <>
                 <SparklesIcon className="h-4 w-4 mr-2" /> 
                 Optimize Entire Resume
+              </>
+            ) : (
+              <>
+                <LockIcon className="h-4 w-4 mr-2" /> 
+                Upgrade to Use AI Optimization
               </>
             )}
           </Button>
@@ -94,8 +118,16 @@ export function ResumeSettings({
         <Button variant="outline" onClick={onPreview}>
           Preview Resume
         </Button>
-        <Button onClick={onDownload}>
-          <DownloadIcon className="mr-2 h-4 w-4" /> Download Resume
+        <Button onClick={handleDownload}>
+          {isSubscribed ? (
+            <>
+              <DownloadIcon className="mr-2 h-4 w-4" /> Download Resume
+            </>
+          ) : (
+            <>
+              <LockIcon className="mr-2 h-4 w-4" /> Upgrade to Download
+            </>
+          )}
         </Button>
       </div>
     </>

@@ -3,7 +3,9 @@ import { Job } from "@/lib/types";
 import { JobCard } from "@/components/JobCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowUpRight, Briefcase } from "lucide-react";
+import { ArrowUpRight, Briefcase, LockIcon } from "lucide-react";
+import { useSubscription } from "@/contexts/SubscriptionContext";
+import { useAuth } from "@/App";
 
 interface JobsListProps {
   jobs: Job[];
@@ -34,6 +36,9 @@ export function JobsList({
   setSelectedCategories,
   filter
 }: JobsListProps) {
+  const { isSubscribed, setShowSubscribeModal } = useSubscription();
+  const { user } = useAuth();
+  
   if (error) {
     return (
       <div className="text-center p-10">
@@ -84,6 +89,10 @@ export function JobsList({
       </div>
     );
   }
+
+  // Determine if we need to limit the jobs shown
+  const shouldLimitJobs = !isSubscribed && filteredJobs.length > 5;
+  const displayedJobs = shouldLimitJobs ? filteredJobs.slice(0, 5) : filteredJobs;
   
   return (
     <div>
@@ -98,7 +107,7 @@ export function JobsList({
       </div>
       
       <div className="grid grid-cols-1 gap-3">
-        {filteredJobs.map((job) => (
+        {displayedJobs.map((job) => (
           <JobCard 
             key={job.id}
             job={job}
@@ -109,6 +118,26 @@ export function JobsList({
           />
         ))}
       </div>
+
+      {shouldLimitJobs && (
+        <div className="mt-6 border border-primary/20 rounded-xl p-6 bg-primary/5 text-center">
+          <div className="flex justify-center mb-4">
+            <LockIcon className="h-12 w-12 text-primary" />
+          </div>
+          <h3 className="text-xl font-medium mb-2">
+            {filteredJobs.length - 5} more jobs available with Premium
+          </h3>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            Subscribe to our Premium plan to access all job listings and unlock all features
+          </p>
+          <Button 
+            onClick={() => setShowSubscribeModal(true)}
+            className="px-8"
+          >
+            Upgrade to Premium
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

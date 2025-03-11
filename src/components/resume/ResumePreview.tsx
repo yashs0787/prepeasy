@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon } from 'lucide-react';
+import { DownloadIcon, LockIcon } from 'lucide-react';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 interface ResumeData {
   personalInfo: {
@@ -65,6 +65,16 @@ export function ResumePreview({
   onReturn, 
   onDownload 
 }: ResumePreviewProps) {
+  const { isSubscribed, setShowSubscribeModal } = useSubscription();
+
+  const handleDownloadClick = () => {
+    if (isSubscribed) {
+      onDownload();
+    } else {
+      setShowSubscribeModal(true);
+    }
+  };
+
   return (
     <>
       <CardHeader>
@@ -207,8 +217,16 @@ export function ResumePreview({
         <Button variant="outline" onClick={onReturn}>
           Return to Editor
         </Button>
-        <Button onClick={onDownload}>
-          <DownloadIcon className="mr-2 h-4 w-4" /> Download Resume
+        <Button onClick={handleDownloadClick}>
+          {isSubscribed ? (
+            <>
+              <DownloadIcon className="mr-2 h-4 w-4" /> Download Resume
+            </>
+          ) : (
+            <>
+              <LockIcon className="mr-2 h-4 w-4" /> Upgrade to Download
+            </>
+          )}
         </Button>
       </CardFooter>
     </>
