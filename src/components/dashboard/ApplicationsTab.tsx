@@ -1,4 +1,2 @@
-
-import { ApplicationsTab } from './applications';
-
+import { ApplicationsTab } from './applications/ApplicationsTab';
 export { ApplicationsTab };
