@@ -1,148 +1,130 @@
 
 import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { Job } from "@/lib/types";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, SearchIcon } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export function JobScraper() {
   const [isLoading, setIsLoading] = useState(false);
-  const [keywords, setKeywords] = useState("software developer");
-  const [location, setLocation] = useState("remote");
-  const [source, setSource] = useState("linkedin");
-  const [scrapeService, setScrapeService] = useState("apify");
-  const [scrapedJobs, setScrapedJobs] = useState<Job[]>([]);
-  
-  const handleScrape = async () => {
+  const [keywords, setKeywords] = useState('');
+  const [location, setLocation] = useState('');
+  const [source, setSource] = useState('linkedin');
+  const [jobCount, setJobCount] = useState(0);
+
+  const handleScrapeJobs = async () => {
+    if (!keywords) {
+      toast.error("Please enter keywords for your job search");
+      return;
+    }
+
     setIsLoading(true);
-    setScrapedJobs([]);
-    
     try {
       const { data, error } = await supabase.functions.invoke('job-scraper', {
-        body: { source, keywords, location, scrapeService }
+        body: {
+          source,
+          keywords,
+          location,
+          scrapeService: 'apify' // Default to apify as the scraper service
+        }
       });
-      
+
       if (error) throw error;
+
+      const results = data?.results || [];
+      setJobCount(results.length || 0);
       
-      toast.success(`Scraped ${data.jobs?.length || 0} jobs from ${source}`);
-      setScrapedJobs(data.jobs || []);
+      toast.success(`Found ${results.length} jobs!`, {
+        description: "Refresh the jobs page to see the new listings."
+      });
     } catch (error) {
       console.error("Error scraping jobs:", error);
-      toast.error("Failed to scrape jobs. Please try again.");
+      toast.error("Failed to scrape jobs", {
+        description: error.message || "Please try again later"
+      });
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Job Scraper</h2>
-        <Button variant="outline" onClick={handleScrape} disabled={isLoading}>
-          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
-          {isLoading ? "Scraping..." : "Scrape Jobs"}
-        </Button>
-      </div>
+      <h2 className="text-2xl font-semibold">Job Scraper</h2>
       
       <Card>
         <CardHeader>
-          <CardTitle>Search Parameters</CardTitle>
-          <CardDescription>Configure the job scraping parameters</CardDescription>
+          <CardTitle>Find New Jobs</CardTitle>
+          <CardDescription>
+            Use our automatic job scraper to find new job opportunities
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="source">Source</Label>
-              <Select value={source} onValueChange={setSource}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select source" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="linkedin">LinkedIn</SelectItem>
-                  <SelectItem value="twitter">Twitter/X</SelectItem>
-                  <SelectItem value="reddit">Reddit</SelectItem>
-                  <SelectItem value="all">All Sources</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="scrapeService">Scraping Service</Label>
-              <Select value={scrapeService} onValueChange={setScrapeService}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select service" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="apify">Apify</SelectItem>
-                  <SelectItem value="brightdata">BrightData</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="keywords">Keywords</Label>
-              <Input 
-                id="keywords"
-                value={keywords}
-                onChange={(e) => setKeywords(e.target.value)}
-                placeholder="e.g. software developer, react"
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input 
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. remote, new york, san francisco"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="keywords">Job Keywords</Label>
+            <Input 
+              id="keywords" 
+              placeholder="React Developer, Frontend Engineer, etc."
+              value={keywords}
+              onChange={(e) => setKeywords(e.target.value)}
+            />
           </div>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={handleScrape} disabled={isLoading} className="w-full">
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {isLoading ? "Scraping Jobs..." : "Start Scraping"}
+          
+          <div className="space-y-2">
+            <Label htmlFor="location">Location (Optional)</Label>
+            <Input 
+              id="location" 
+              placeholder="Remote, New York, San Francisco, etc."
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="source">Job Source</Label>
+            <Select 
+              value={source} 
+              onValueChange={setSource}
+            >
+              <SelectTrigger id="source">
+                <SelectValue placeholder="Select a job source" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="linkedin">LinkedIn</SelectItem>
+                <SelectItem value="indeed">Indeed</SelectItem>
+                <SelectItem value="glassdoor">Glassdoor</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Button 
+            className="w-full mt-2" 
+            onClick={handleScrapeJobs}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Searching for jobs...
+              </>
+            ) : (
+              <>
+                <SearchIcon className="mr-2 h-4 w-4" />
+                Find Jobs
+              </>
+            )}
           </Button>
-        </CardFooter>
+          
+          {jobCount > 0 && (
+            <p className="text-sm text-center text-muted-foreground pt-2">
+              Found {jobCount} jobs matching your criteria.
+            </p>
+          )}
+        </CardContent>
       </Card>
-      
-      {scrapedJobs.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Scraped Jobs</CardTitle>
-            <CardDescription>Found {scrapedJobs.length} jobs matching your criteria</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {scrapedJobs.map((job, i) => (
-                <div key={i} className="border rounded-lg p-4 hover:bg-secondary/10 transition-colors">
-                  <h3 className="font-medium">{job.title}</h3>
-                  <p className="text-sm text-muted-foreground">{job.company} • {job.location || 'Location not specified'}</p>
-                  {job.description && (
-                    <p className="text-sm mt-2">{job.description.substring(0, 100)}...</p>
-                  )}
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-xs bg-primary/20 text-primary-foreground px-2 py-1 rounded">
-                      Source: {job.source}
-                    </span>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={job.applyUrl} target="_blank" rel="noopener noreferrer">View Job</a>
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
