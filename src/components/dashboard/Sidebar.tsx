@@ -1,15 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { 
-  BookmarkIcon, 
-  ClipboardListIcon, 
-  FileEditIcon, 
-  BellIcon, 
-  UserIcon, 
-  SettingsIcon 
-} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { BarChart2, Bell, Bookmark, Building, FileText, Rocket, Search, Settings, Users } from "lucide-react";
 
 interface SidebarProps {
   activeTab: string;
@@ -21,125 +13,110 @@ interface SidebarProps {
   totalJobs: number;
 }
 
-export function Sidebar({ 
-  activeTab, 
-  setActiveTab, 
-  appliedJobs, 
-  interviewingJobs, 
-  offeredJobs, 
-  rejectedJobs, 
-  totalJobs 
+export function Sidebar({
+  activeTab,
+  setActiveTab,
+  appliedJobs,
+  interviewingJobs,
+  offeredJobs,
+  rejectedJobs,
+  totalJobs
 }: SidebarProps) {
+  const tabs = [
+    {
+      id: "applications",
+      label: "Applications",
+      icon: <Building className="h-4 w-4 mr-2" />,
+      count: appliedJobs
+    },
+    {
+      id: "saved",
+      label: "Saved Jobs",
+      icon: <Bookmark className="h-4 w-4 mr-2" />,
+      count: totalJobs
+    },
+    {
+      id: "scraper",
+      label: "Job Scraper",
+      icon: <Search className="h-4 w-4 mr-2" />
+    },
+    {
+      id: "resume",
+      label: "Resume Builder",
+      icon: <FileText className="h-4 w-4 mr-2" />
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: <Bell className="h-4 w-4 mr-2" />
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <Settings className="h-4 w-4 mr-2" />
+    }
+  ];
+
   return (
-    <div className="hidden md:block space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">
-            <div className="flex items-center gap-2">
-              <UserIcon size={16} />
-              <span>My Profile</span>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-3">
-          <div className="flex flex-col items-center text-center space-y-2">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-              <UserIcon size={32} className="text-primary" />
-            </div>
-            <div>
-              <h3 className="font-medium">John Doe</h3>
-              <p className="text-sm text-muted-foreground">john.doe@example.com</p>
-            </div>
-            <Button variant="outline" size="sm" className="w-full mt-2">
-              Edit Profile
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="space-y-1">
-        <Button 
-          variant={activeTab === "applications" ? "default" : "ghost"} 
-          className="w-full justify-start" 
-          onClick={() => setActiveTab("applications")}
-        >
-          <ClipboardListIcon size={16} className="mr-2" />
-          Applications
-        </Button>
-        <Button 
-          variant={activeTab === "saved" ? "default" : "ghost"} 
-          className="w-full justify-start" 
-          onClick={() => setActiveTab("saved")}
-        >
-          <BookmarkIcon size={16} className="mr-2" />
-          Saved Jobs
-        </Button>
-        <Button 
-          variant={activeTab === "resume" ? "default" : "ghost"} 
-          className="w-full justify-start" 
-          onClick={() => setActiveTab("resume")}
-        >
-          <FileEditIcon size={16} className="mr-2" />
-          Resume Builder
-        </Button>
-        <Button 
-          variant={activeTab === "notifications" ? "default" : "ghost"} 
-          className="w-full justify-start" 
-          onClick={() => setActiveTab("notifications")}
-        >
-          <BellIcon size={16} className="mr-2" />
-          Notifications
-        </Button>
-        <Button 
-          variant={activeTab === "settings" ? "default" : "ghost"} 
-          className="w-full justify-start" 
-          onClick={() => setActiveTab("settings")}
-        >
-          <SettingsIcon size={16} className="mr-2" />
-          Settings
-        </Button>
+    <div className="hidden md:flex flex-col gap-1">
+      <div className="pb-6">
+        <h2 className="text-xl font-semibold">Dashboard</h2>
+        <p className="text-sm text-muted-foreground">Manage your job applications</p>
       </div>
       
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium">Application Statistics</CardTitle>
-        </CardHeader>
-        <CardContent className="py-2">
-          <div className="space-y-4 text-sm">
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Applied</span>
-                <span className="font-medium">{appliedJobs}</span>
-              </div>
-              <Progress value={(appliedJobs / totalJobs) * 100} className="h-1" />
+      <div className="space-y-1">
+        {tabs.map((tab) => (
+          <Button
+            key={tab.id}
+            variant={activeTab === tab.id ? "secondary" : "ghost"}
+            className={cn(
+              "w-full justify-start",
+              activeTab === tab.id ? "bg-secondary text-secondary-foreground" : ""
+            )}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.icon}
+            {tab.label}
+            {tab.count !== undefined && (
+              <span className={cn(
+                "ml-auto bg-primary/20 text-xs px-1.5 py-0.5 rounded-md",
+                activeTab === tab.id ? "bg-secondary-foreground/20 text-secondary-foreground" : "text-primary-foreground"
+              )}>
+                {tab.count}
+              </span>
+            )}
+          </Button>
+        ))}
+      </div>
+      
+      <div className="mt-auto pt-6 space-y-4">
+        <div className="space-y-2">
+          <div className="text-xs font-medium">Application Status</div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-purple-500/10 rounded-md p-2">
+              <div className="text-xs text-muted-foreground">Interviewing</div>
+              <div className="text-xl font-semibold">{interviewingJobs}</div>
             </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Interviews</span>
-                <span className="font-medium">{interviewingJobs}</span>
-              </div>
-              <Progress value={(interviewingJobs / totalJobs) * 100} className="h-1" />
+            <div className="bg-green-500/10 rounded-md p-2">
+              <div className="text-xs text-muted-foreground">Offered</div>
+              <div className="text-xl font-semibold">{offeredJobs}</div>
             </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Offers</span>
-                <span className="font-medium">{offeredJobs}</span>
-              </div>
-              <Progress value={(offeredJobs / totalJobs) * 100} className="h-1" />
+            <div className="bg-blue-500/10 rounded-md p-2">
+              <div className="text-xs text-muted-foreground">Applied</div>
+              <div className="text-xl font-semibold">{appliedJobs}</div>
             </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Rejected</span>
-                <span className="font-medium">{rejectedJobs}</span>
-              </div>
-              <Progress value={(rejectedJobs / totalJobs) * 100} className="h-1" />
+            <div className="bg-red-500/10 rounded-md p-2">
+              <div className="text-xs text-muted-foreground">Rejected</div>
+              <div className="text-xl font-semibold">{rejectedJobs}</div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        
+        <Button className="w-full neon-button">
+          <Rocket className="h-4 w-4 mr-2" />
+          Find New Jobs
+        </Button>
+      </div>
     </div>
   );
 }

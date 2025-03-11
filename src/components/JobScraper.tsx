@@ -2,149 +2,133 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Linkedin, Twitter, MessageSquare } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { Job } from "@/lib/types";
+import { Loader2, RefreshCw } from "lucide-react";
 
 export function JobScraper() {
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
-  const [keywords, setKeywords] = useState('');
-  const [location, setLocation] = useState('');
+  const [keywords, setKeywords] = useState("software developer");
+  const [location, setLocation] = useState("remote");
+  const [source, setSource] = useState("linkedin");
+  const [scrapedJobs, setScrapedJobs] = useState<Job[]>([]);
   
-  const handleSearch = (platform: string) => {
+  const handleScrape = async () => {
     setIsLoading(true);
+    setScrapedJobs([]);
     
-    // Simulating API call to scrape jobs
-    setTimeout(() => {
-      setResults([
-        {
-          id: 1,
-          title: 'Senior Frontend Developer',
-          company: 'TechCorp',
-          location: 'Remote',
-          salary: '$120k - $150k',
-          description: 'Looking for an experienced developer to join our team...',
-          platform,
-          postedAt: '2 days ago'
-        },
-        {
-          id: 2,
-          title: 'UX/UI Designer',
-          company: 'DesignHub',
-          location: 'New York, NY',
-          salary: '$90k - $110k',
-          description: 'Join our creative team to design next-gen interfaces...',
-          platform,
-          postedAt: '5 days ago'
-        },
-        {
-          id: 3,
-          title: 'Full Stack Engineer',
-          company: 'StartupX',
-          location: 'San Francisco, CA',
-          salary: '$130k - $160k',
-          description: 'Help us build and scale our product...',
-          platform,
-          postedAt: '1 day ago'
-        }
-      ]);
+    try {
+      const { data, error } = await supabase.functions.invoke('job-scraper', {
+        body: { source, keywords, location }
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`Scraped ${data.jobs?.length || 0} jobs from ${source}`);
+      setScrapedJobs(data.jobs || []);
+    } catch (error) {
+      console.error("Error scraping jobs:", error);
+      toast.error("Failed to scrape jobs. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
   
   return (
-    <div className="w-full">
-      <Tabs defaultValue="linkedin" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="linkedin" className="flex items-center gap-2">
-            <Linkedin className="h-4 w-4" /> LinkedIn
-          </TabsTrigger>
-          <TabsTrigger value="twitter" className="flex items-center gap-2">
-            <Twitter className="h-4 w-4" /> X/Twitter
-          </TabsTrigger>
-          <TabsTrigger value="reddit" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" /> Reddit
-          </TabsTrigger>
-        </TabsList>
-        
-        {['linkedin', 'twitter', 'reddit'].map((platform) => (
-          <TabsContent key={platform} value={platform} className="space-y-4">
-            <Card className="glass-card bg-black/30">
-              <CardHeader>
-                <CardTitle>
-                  Search {platform === 'linkedin' ? 'LinkedIn' : platform === 'twitter' ? 'X/Twitter' : 'Reddit'} Jobs
-                </CardTitle>
-                <CardDescription>
-                  Find the latest job opportunities from {platform === 'linkedin' ? 'LinkedIn' : platform === 'twitter' ? 'X/Twitter' : 'Reddit'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="keywords">Keywords</Label>
-                    <Input 
-                      id="keywords" 
-                      placeholder="React, JavaScript, UI/UX..."
-                      value={keywords}
-                      onChange={(e) => setKeywords(e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input 
-                      id="location" 
-                      placeholder="Remote, New York, London..."
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  onClick={() => handleSearch(platform)} 
-                  disabled={isLoading} 
-                  className="neon-button"
-                >
-                  {isLoading ? "Searching..." : "Search Jobs"}
-                </Button>
-              </CardFooter>
-            </Card>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold">Job Scraper</h2>
+        <Button variant="outline" onClick={handleScrape} disabled={isLoading}>
+          {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+          {isLoading ? "Scraping..." : "Scrape Jobs"}
+        </Button>
+      </div>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Search Parameters</CardTitle>
+          <CardDescription>Configure the job scraping parameters</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="source">Source</Label>
+              <Select value={source} onValueChange={setSource}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select source" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="linkedin">LinkedIn</SelectItem>
+                  <SelectItem value="twitter">Twitter/X</SelectItem>
+                  <SelectItem value="reddit">Reddit</SelectItem>
+                  <SelectItem value="all">All Sources</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
-            {results.length > 0 && (
-              <div className="space-y-4 mt-6">
-                <h3 className="text-xl font-semibold">Results</h3>
-                <div className="grid grid-cols-1 gap-4">
-                  {results.map((job) => (
-                    <Card key={job.id} className="feature-card">
-                      <CardHeader>
-                        <CardTitle>{job.title}</CardTitle>
-                        <CardDescription>
-                          {job.company} • {job.location} • {job.postedAt}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground">{job.description}</p>
-                        <div className="mt-2 font-semibold">{job.salary}</div>
-                      </CardContent>
-                      <CardFooter className="flex justify-between">
-                        <Button variant="outline" size="sm">
-                          Save
-                        </Button>
-                        <Button className="neon-button" size="sm">
-                          Apply Now
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
+            <div className="space-y-2">
+              <Label htmlFor="keywords">Keywords</Label>
+              <Input 
+                id="keywords"
+                value={keywords}
+                onChange={(e) => setKeywords(e.target.value)}
+                placeholder="e.g. software developer, react"
+              />
+            </div>
+            
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="location">Location</Label>
+              <Input 
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. remote, new york, san francisco"
+              />
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleScrape} disabled={isLoading} className="w-full">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            {isLoading ? "Scraping Jobs..." : "Start Scraping"}
+          </Button>
+        </CardFooter>
+      </Card>
+      
+      {scrapedJobs.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Scraped Jobs</CardTitle>
+            <CardDescription>Found {scrapedJobs.length} jobs matching your criteria</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {scrapedJobs.map((job, i) => (
+                <div key={i} className="border rounded-lg p-4 hover:bg-secondary/10 transition-colors">
+                  <h3 className="font-medium">{job.title}</h3>
+                  <p className="text-sm text-muted-foreground">{job.company} • {job.location || 'Location not specified'}</p>
+                  {job.description && (
+                    <p className="text-sm mt-2">{job.description.substring(0, 100)}...</p>
+                  )}
+                  <div className="flex justify-between items-center mt-4">
+                    <span className="text-xs bg-primary/20 text-primary-foreground px-2 py-1 rounded">
+                      Source: {job.source}
+                    </span>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={job.url} target="_blank" rel="noopener noreferrer">View Job</a>
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
