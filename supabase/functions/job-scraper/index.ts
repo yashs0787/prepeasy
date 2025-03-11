@@ -37,12 +37,28 @@ async function scrapeLinkedIn(keywords = "software developer", location = "remot
       
       if (title && company) {
         jobs.push({
+          id: `linkedin-${Date.now()}-${i}`,
           title,
           company,
           location,
-          url: link,
+          description: "Job posted on LinkedIn",
+          applyUrl: link,
           source: 'LinkedIn',
-          scraped_at: new Date().toISOString()
+          salary: '',
+          jobType: 'Full-time',
+          workType: location.toLowerCase().includes('remote') ? 'Remote' : 'On-site',
+          postedAt: new Date().toISOString(),
+          skills: [],
+          isSaved: false,
+          applicationStatus: null,
+          category: '',
+          experienceLevel: '',
+          industry: '',
+          hiringManager: {
+            name: '',
+            role: '',
+            platform: 'LinkedIn'
+          }
         });
       }
     });
@@ -71,12 +87,28 @@ async function scrapeTwitter(hashtag = "techjobs") {
       // Simple job post detection (could be improved with AI)
       if (text && (text.toLowerCase().includes('hiring') || text.toLowerCase().includes('job'))) {
         jobs.push({
+          id: `twitter-${Date.now()}-${i}`,
           title: "Job Post",
           company: author,
+          location: 'Remote',
           description: text,
-          url: `https://twitter.com${link}`,
+          applyUrl: `https://twitter.com${link}`,
           source: 'Twitter',
-          scraped_at: new Date().toISOString()
+          salary: '',
+          jobType: 'Full-time',
+          workType: 'Remote',
+          postedAt: new Date().toISOString(),
+          skills: [],
+          isSaved: false,
+          applicationStatus: null,
+          category: '',
+          experienceLevel: '',
+          industry: '',
+          hiringManager: {
+            name: author,
+            role: '',
+            platform: 'Twitter'
+          }
         });
       }
     });
@@ -103,11 +135,30 @@ async function scrapeReddit(subreddit = "forhire") {
       
       // Filter for job posts (usually start with [HIRING])
       if (title && title.includes('[HIRING]')) {
+        const cleanTitle = title.replace('[HIRING]', '').trim();
         jobs.push({
-          title: title.replace('[HIRING]', '').trim(),
-          url: `https://www.reddit.com${link}`,
+          id: `reddit-${Date.now()}-${i}`,
+          title: cleanTitle,
+          company: 'Posted on Reddit',
+          location: 'Remote',
+          description: cleanTitle,
+          applyUrl: `https://www.reddit.com${link}`,
           source: 'Reddit',
-          scraped_at: new Date().toISOString()
+          salary: '',
+          jobType: 'Contract',
+          workType: 'Remote',
+          postedAt: new Date().toISOString(),
+          skills: [],
+          isSaved: false,
+          applicationStatus: null,
+          category: '',
+          experienceLevel: '',
+          industry: '',
+          hiringManager: {
+            name: '',
+            role: '',
+            platform: 'Reddit'
+          }
         });
       }
     });
@@ -135,7 +186,7 @@ async function storeJobs(jobs: any[], client: any) {
     const existingUrls = new Set(existingJobs.map((job: any) => job.url));
     
     // Filter out jobs that already exist in the database
-    const newJobs = jobs.filter((job: any) => !existingUrls.has(job.url));
+    const newJobs = jobs.filter((job: any) => !existingUrls.has(job.applyUrl));
     
     if (newJobs.length === 0) {
       return { inserted: 0 };
@@ -144,7 +195,14 @@ async function storeJobs(jobs: any[], client: any) {
     // Insert new jobs
     const { data, error } = await client
       .from('jobs')
-      .insert(newJobs)
+      .insert(newJobs.map((job: any) => ({
+        title: job.title,
+        company: job.company,
+        location: job.location,
+        description: job.description,
+        url: job.applyUrl,
+        source: job.source
+      })))
       .select();
       
     if (error) throw error;
@@ -201,7 +259,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         message: `Scraped ${jobs.length} jobs, inserted ${result.inserted} new jobs`, 
-        jobs: result.jobs 
+        jobs: jobs 
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
