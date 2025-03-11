@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BarChart2, Bell, Bookmark, Building, FileText, Rocket, Search, Settings, Users } from "lucide-react";
+import { BarChart2, Bell, Bookmark, Building, FileText, Rocket, Settings, Users } from "lucide-react";
 
 interface SidebarProps {
   activeTab: string;
@@ -34,11 +34,6 @@ export function Sidebar({
       label: "Saved Jobs",
       icon: <Bookmark className="h-4 w-4 mr-2" />,
       count: totalJobs
-    },
-    {
-      id: "scraper",
-      label: "Job Scraper",
-      icon: <Search className="h-4 w-4 mr-2" />
     },
     {
       id: "resume",

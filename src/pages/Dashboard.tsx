@@ -9,7 +9,6 @@ import { ApplicationsTab } from '@/components/dashboard/ApplicationsTab';
 import { SavedJobsTab } from '@/components/dashboard/SavedJobsTab';
 import { SettingsTab } from '@/components/dashboard/SettingsTab';
 import { MobileTabs } from '@/components/dashboard/MobileTabs';
-import { JobScraper } from '@/components/JobScraper';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("applications");
@@ -61,11 +60,6 @@ export default function Dashboard() {
                 savedJobs={savedJobs}
                 toggleSaveJob={toggleSaveJob}
               />
-            )}
-            
-            {/* Job Scraper Tab */}
-            {activeTab === "scraper" && (
-              <JobScraper />
             )}
             
             {/* Resume Builder Tab */}

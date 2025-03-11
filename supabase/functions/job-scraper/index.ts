@@ -4,6 +4,11 @@ import { corsHeaders } from "./utils/cors.ts";
 import { scrapeJobs, processAndStoreJobs } from "./controllers/scraperController.ts";
 import { createSupabaseClient, storeJobsInDatabase } from "./utils/supabase.ts";
 
+// Default scraping parameters
+const DEFAULT_SOURCES = ['linkedin', 'twitter', 'reddit'];
+const DEFAULT_KEYWORDS = ['react developer', 'frontend engineer', 'web developer', 'software engineer'];
+const DEFAULT_LOCATIONS = ['remote', 'san francisco', 'new york'];
+
 // Main handler
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -12,7 +17,24 @@ serve(async (req) => {
   }
 
   try {
-    const { source, keywords, location, scrapeService } = await req.json();
+    let source, keywords, location, scrapeService;
+    
+    // Check if this is a scheduled/admin request or a manual request with parameters
+    if (req.method === 'POST') {
+      // Manual request with parameters
+      const params = await req.json();
+      source = params.source;
+      keywords = params.keywords;
+      location = params.location;
+      scrapeService = params.scrapeService;
+    } else {
+      // Automatic/scheduled run - use defaults
+      source = 'all';
+      // Randomly select a keyword and location combination to get varied results
+      keywords = DEFAULT_KEYWORDS[Math.floor(Math.random() * DEFAULT_KEYWORDS.length)];
+      location = DEFAULT_LOCATIONS[Math.floor(Math.random() * DEFAULT_LOCATIONS.length)];
+      scrapeService = 'apify';
+    }
     
     console.log(`Job scraping request: source=${source}, keywords=${keywords}, location=${location}, service=${scrapeService || 'apify'}`);
     
