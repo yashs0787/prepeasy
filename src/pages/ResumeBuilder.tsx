@@ -12,10 +12,10 @@ export default function ResumeBuilderPage() {
   const [activeTab, setActiveTab] = useState("create");
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-8">
+      <main className="flex-1 container mx-auto px-4 py-24 mb-16">
         <div className="max-w-4xl mx-auto">
           {!showBuilder ? (
             <>

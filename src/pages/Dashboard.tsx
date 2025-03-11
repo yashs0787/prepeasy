@@ -24,10 +24,10 @@ export default function Dashboard() {
   const interviewingJobs = jobs.filter(j => j.applicationStatus === 'interviewing').length;
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex flex-col min-h-screen">
       <Navbar />
       
-      <main className="flex-1 container mx-auto px-4 py-6">
+      <main className="flex-1 container mx-auto px-4 py-24 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-8">
           {/* Sidebar */}
           <Sidebar 
