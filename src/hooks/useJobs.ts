@@ -18,7 +18,7 @@ const mockJobs: Job[] = [
     skills: ['React', 'TypeScript', 'CSS', 'HTML'],
     source: 'LinkedIn',
     isSaved: true,
-    applicationStatus: null,
+    applicationStatus: 'applied',
     category: 'Engineering',
     experienceLevel: 'Mid-level',
     industry: 'Technology',
@@ -28,7 +28,6 @@ const mockJobs: Job[] = [
       platform: 'linkedin'
     }
   },
-  // Add more mock jobs here...
   {
     id: '2',
     title: 'UX Designer',
@@ -42,11 +41,15 @@ const mockJobs: Job[] = [
     skills: ['Figma', 'Adobe XD', 'User Research', 'Prototyping'],
     source: 'Indeed',
     isSaved: false,
-    applicationStatus: null,
+    applicationStatus: 'interviewing',
     category: 'Design',
     experienceLevel: 'Senior',
     industry: 'Creative',
-    hiringManager: null
+    hiringManager: {
+      name: 'Michael Johnson',
+      role: 'Design Director',
+      platform: 'linkedin'
+    }
   },
   {
     id: '3',
@@ -60,12 +63,39 @@ const mockJobs: Job[] = [
     postedAt: '2023-04-18',
     skills: ['Node.js', 'Python', 'MongoDB', 'AWS'],
     source: 'LinkedIn',
-    isSaved: false,
-    applicationStatus: null,
+    isSaved: true,
+    applicationStatus: 'offered',
     category: 'Engineering',
     experienceLevel: 'Mid-level',
     industry: 'Technology',
-    hiringManager: null
+    hiringManager: {
+      name: 'Sarah Wilson',
+      role: 'CTO',
+      platform: 'linkedin'
+    }
+  },
+  {
+    id: '4',
+    title: 'DevOps Engineer',
+    company: 'CloudTech',
+    location: 'San Francisco, CA',
+    description: 'Looking for a DevOps engineer to help us scale our infrastructure.',
+    salary: '$110,000 - $140,000',
+    jobType: 'Full-time',
+    workType: 'On-site',
+    postedAt: '2023-04-22',
+    skills: ['Docker', 'Kubernetes', 'AWS', 'CI/CD'],
+    source: 'Indeed',
+    isSaved: false,
+    applicationStatus: 'rejected',
+    category: 'Engineering',
+    experienceLevel: 'Senior',
+    industry: 'Technology',
+    hiringManager: {
+      name: 'Robert Chen',
+      role: 'Infrastructure Lead',
+      platform: 'linkedin'
+    }
   }
 ];
 
@@ -87,6 +117,8 @@ export const useJobs = (options?: UseJobsOptions) => {
         job.id === jobId ? { ...job, applicationStatus: status } : job
       )
     );
+    
+    toast.success(`Application status updated to ${status}`);
   };
 
   const saveJob = (jobId: string) => {

@@ -5,7 +5,7 @@ import { BookmarkIcon } from "lucide-react";
 import { Job } from "@/lib/types";
 import { JobCard } from "@/components/JobCard";
 
-interface SavedJobsTabProps {
+export interface SavedJobsTabProps {
   savedJobs: Job[];
   toggleSaveJob: (id: string) => void;
 }

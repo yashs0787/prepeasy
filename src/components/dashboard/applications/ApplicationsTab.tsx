@@ -1,9 +1,7 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
 import { CalendarIcon, FileTextIcon } from "lucide-react";
 import { Job } from "@/lib/types";
 import { JobApplicationCard } from "./JobApplicationCard";
@@ -13,7 +11,7 @@ import { NotesModal } from "./NotesModal";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
-interface ApplicationsTabProps {
+export interface ApplicationsTabProps {
   appliedJobs: Job[];
   offeredJobs: Job[];
   rejectedJobs: Job[];
@@ -163,7 +161,6 @@ export function ApplicationsTab({
         </TabsContent>
       </Tabs>
       
-      {/* Interview Modal */}
       <InterviewModal
         isOpen={isInterviewModalOpen}
         onOpenChange={setIsInterviewModalOpen}
@@ -175,7 +172,6 @@ export function ApplicationsTab({
         onSave={saveInterviewDetails}
       />
       
-      {/* Notes Modal */}
       <NotesModal
         isOpen={isNotesModalOpen}
         onOpenChange={setIsNotesModalOpen}
