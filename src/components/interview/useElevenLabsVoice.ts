@@ -21,6 +21,7 @@ export const useElevenLabsVoice = (initialVoiceId?: string) => {
   const [selectedVoice, setSelectedVoice] = useState<string>(initialVoiceId || DEFAULT_VOICES[0].id);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // Initialize audio element
@@ -81,6 +82,7 @@ export const useElevenLabsVoice = (initialVoiceId?: string) => {
     }
 
     try {
+      setIsLoading(true);
       setIsPlaying(true);
       toast.info("Generating speech...");
       
@@ -110,12 +112,15 @@ export const useElevenLabsVoice = (initialVoiceId?: string) => {
       audioElement.src = audioUrl;
       await audioElement.play();
       
+      setIsLoading(false);
+      
       return () => {
         URL.revokeObjectURL(audioUrl);
       };
     } catch (error) {
       console.error('Error generating speech:', error);
       toast.error('Failed to generate speech from ElevenLabs');
+      setIsLoading(false);
       setIsPlaying(false);
     }
   }, [apiKey, selectedVoice, audioElement]);
@@ -137,6 +142,7 @@ export const useElevenLabsVoice = (initialVoiceId?: string) => {
     speakText,
     stopSpeaking,
     isPlaying,
+    isLoading,
     fetchVoices
   };
 };

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { ElevenLabsVoice, useElevenLabsVoice } from './useElevenLabsVoice';
 
 interface VoiceSettingsProps {
@@ -22,6 +22,7 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
     speakText,
     stopSpeaking,
     isPlaying,
+    isLoading,
     fetchVoices
   } = useElevenLabsVoice();
 
@@ -86,11 +87,16 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
 
         <Button 
           onClick={handleTestVoice} 
-          disabled={!apiKey}
+          disabled={!apiKey || isLoading}
           className="w-full"
           variant={isPlaying ? "destructive" : "default"}
         >
-          {isPlaying ? (
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating Audio...
+            </>
+          ) : isPlaying ? (
             <>
               <VolumeX className="h-4 w-4 mr-2" />
               Stop Audio
