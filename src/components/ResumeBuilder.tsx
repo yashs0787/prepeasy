@@ -1,8 +1,9 @@
-import React, { useContext } from 'react';
+
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { AuthContext } from '@/App';
+import { useAuth } from '@/contexts/AuthContext';
 import { PersonalInfoSection } from './resume/PersonalInfoSection';
 import { ExperienceSection } from './resume/ExperienceSection';
 import { EducationSection } from './resume/EducationSection';
@@ -26,7 +27,7 @@ const RESUME_FORMATS = [
 ];
 
 export function ResumeBuilder() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const { isSubscribed, setShowSubscribeModal } = useSubscription();
   const {
     resumeData,

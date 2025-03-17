@@ -1,11 +1,11 @@
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, SendIcon } from "lucide-react";
-import { AuthContext } from "@/App";
+import { useAuth } from "@/contexts/AuthContext";
 import { useJobs } from '@/hooks/useJobs';
 import { SignInPrompt } from './job-apply/SignInPrompt';
 import { ApplicationTab } from './job-apply/ApplicationTab';
@@ -18,7 +18,7 @@ interface JobApplyModalProps {
 }
 
 export function JobApplyModal({ jobId, open, onClose }: JobApplyModalProps) {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const { jobs, updateApplicationStatus } = useJobs();
   const [activeTab, setActiveTab] = useState("apply");
   const [coverLetter, setCoverLetter] = useState("");

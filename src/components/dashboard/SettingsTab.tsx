@@ -1,9 +1,8 @@
-
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, SaveIcon } from "lucide-react";
 import { toast } from "sonner";
-import { AuthContext } from "@/App";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { PersonalInfoCard } from "./settings/PersonalInfoCard";
 import { JobPreferencesCard } from "./settings/JobPreferencesCard";
@@ -12,7 +11,7 @@ import { DeleteAccountCard } from "./settings/DeleteAccountCard";
 import { useProfileData } from "./settings/useProfileData";
 
 export function SettingsTab() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const {
     profile,
@@ -61,7 +60,6 @@ export function SettingsTab() {
   };
   
   const handleUpdatePassword = async () => {
-    // Password validation
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast.error("New passwords don't match");
       return;
@@ -81,7 +79,6 @@ export function SettingsTab() {
       if (error) throw error;
       
       toast.success("Password updated successfully");
-      // Clear password fields
       setPasswordForm({
         currentPassword: '',
         newPassword: '',
@@ -104,8 +101,6 @@ export function SettingsTab() {
     
     setIsSaving(true);
     try {
-      // In a real implementation, this would call a secure server-side endpoint
-      // For demo purposes, we'll just sign the user out
       await supabase.auth.signOut();
       toast.success("Account deleted successfully");
     } catch (error) {
