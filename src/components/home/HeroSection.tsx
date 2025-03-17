@@ -4,7 +4,12 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Briefcase, FileText, User } from 'lucide-react';
 
-export function HeroSection() {
+interface HeroSectionProps {
+  scrollY?: number;
+  scrollToSection?: (section: string) => void;
+}
+
+export function HeroSection({ scrollY, scrollToSection }: HeroSectionProps) {
   const navigate = useNavigate();
 
   return (
@@ -31,7 +36,13 @@ export function HeroSection() {
                 variant="outline" 
                 size="lg" 
                 className="w-full sm:w-auto text-lg"
-                onClick={() => navigate('/about')}
+                onClick={() => {
+                  if (scrollToSection) {
+                    scrollToSection('features');
+                  } else {
+                    navigate('/about');
+                  }
+                }}
               >
                 Learn More
               </Button>

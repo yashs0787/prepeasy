@@ -48,13 +48,13 @@ export default function Index() {
       
       <main className="flex-1 pt-16 overflow-hidden">
         <HeroSection scrollY={scrollY} scrollToSection={scrollToSection} />
-        <ProblemSection scrollY={scrollY} />
-        <SolutionSection scrollY={scrollY} scrollToSection={scrollToSection} />
-        <FeaturesSection scrollY={scrollY} />
-        <StatsSection scrollY={scrollY} />
-        <DemoSection scrollY={scrollY} />
-        <TestimonialSection scrollY={scrollY} scrollToSection={scrollToSection} />
-        <FloatingCTA scrollY={scrollY} scrollToSection={scrollToSection} />
+        <ProblemSection />
+        <SolutionSection />
+        <FeaturesSection />
+        <StatsSection />
+        <DemoSection />
+        <TestimonialSection />
+        <FloatingCTA />
       </main>
       
       <FooterSection />
