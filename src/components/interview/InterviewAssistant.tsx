@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { useInterviewAssistant } from './useInterviewAssistant';
+import { useInterviewAssistant, CareerTrack } from './useInterviewAssistant';
 import { PrepareTab } from './tabs/PrepareTab';
 import { PracticeTab } from './tabs/PracticeTab';
 import { AnalyzeTab } from './tabs/AnalyzeTab';
-import { Input } from '@/components/ui/input'; // Added the missing import
+import { Input } from '@/components/ui/input';
 
 interface InterviewAssistantProps {
   profile?: any;
@@ -31,7 +31,7 @@ export function InterviewAssistant({ profile }: InterviewAssistantProps) {
   } = useInterviewAssistant(initialCareerTrack);
   
   // Map profile career path to interview assistant career track
-  function mapProfileToCareerTrack(careerPath: string): 'consulting' | 'investment-banking' | 'tech' | 'general' {
+  function mapProfileToCareerTrack(careerPath: string): CareerTrack {
     if (!careerPath) return 'general';
     
     switch (careerPath) {

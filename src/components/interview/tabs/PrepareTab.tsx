@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -6,8 +5,9 @@ import { Send } from 'lucide-react';
 import { CareerTrackSelector } from '../CareerTrackSelector';
 import { QuestionLibrary } from '../QuestionLibrary';
 import { FeedbackDisplay } from '../FeedbackDisplay';
-import { useInterviewAssistant } from '../useInterviewAssistant';
-import { CareerTrack, InterviewQuestion } from '../useInterviewAssistant';
+import { CareerTrack, InterviewQuestion } from '../types/interviewTypes';
+import { useFeedbackGenerator } from '../hooks/useFeedbackGenerator';
+import { getQuestionsForTrack } from '../utils/questionData';
 import { toast } from 'sonner';
 
 interface PrepareTabProps {
@@ -18,29 +18,22 @@ interface PrepareTabProps {
 export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
   const [question, setQuestion] = useState('');
   const [selectedQuestion, setSelectedQuestion] = useState<InterviewQuestion | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
   
   // Get filtered questions based on career track
-  const { filteredQuestions } = useInterviewAssistant(careerTrack);
+  const filteredQuestions = getQuestionsForTrack(careerTrack);
+  
+  const { 
+    feedback, 
+    generateQuestionAdvice, 
+    generateCustomQuestionAdvice 
+  } = useFeedbackGenerator();
   
   const handleSelectQuestion = (question: InterviewQuestion) => {
     setSelectedQuestion(question);
     toast.info("Question selected");
     
     setTimeout(() => {
-      let strategy = '';
-      
-      if (question.careerTrack === 'consulting') {
-        strategy = "For this case question, start with clarifying questions to understand the problem scope. Then structure your approach using a relevant framework like profitability analysis or market sizing. Be sure to state your assumptions clearly and walk through your logic step by step.";
-      } else if (question.careerTrack === 'investment-banking') {
-        strategy = "This technical question tests your financial knowledge. Begin with the fundamental concepts, then demonstrate advanced understanding. Use specific examples from deals or markets you're familiar with, and be prepared to defend your analytical approach.";
-      } else if (question.type === 'behavioral') {
-        strategy = "Use the STAR method (Situation, Task, Action, Result) to structure your response. Choose a relevant example that highlights your skills and achievements while directly answering the question.";
-      } else {
-        strategy = "Begin with a concise overview before diving into details. Structure your answer logically and remember to connect your technical knowledge to business impact when possible.";
-      }
-      
-      setFeedback(strategy);
+      generateQuestionAdvice(question);
     }, 1000);
   };
 
@@ -51,8 +44,7 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
     toast.info("Processing your question...");
     
     setTimeout(() => {
-      const advice = "This question evaluates your problem-solving approach and analytical thinking. Structure your answer using a clear framework, state your assumptions explicitly, and walk through your reasoning step by step. Use specific examples from your experience to demonstrate your skills.";
-      setFeedback(advice);
+      generateCustomQuestionAdvice();
     }, 2000);
   };
 

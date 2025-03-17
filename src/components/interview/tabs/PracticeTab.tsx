@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { toast } from 'sonner';
 import { useSpeechRecognition } from '../useSpeechRecognition';
 import { TranscriptAnalysis } from '../TranscriptAnalysis';
 import { FeedbackDisplay } from '../FeedbackDisplay';
-import { useInterviewAssistant, InterviewType } from '../useInterviewAssistant';
+import { useInterviewAssistant, InterviewType, CareerTrack } from '../useInterviewAssistant';
 
 interface PracticeTabProps {
   interviewType: InterviewType;
@@ -32,7 +31,6 @@ export function PracticeTab({
     stopPractice
   } = useInterviewAssistant(profile?.careerPath ? mapProfileToCareerTrack(profile.careerPath) : 'general');
 
-  // Speech recognition hook
   const {
     transcript,
     isSupported,
@@ -42,8 +40,7 @@ export function PracticeTab({
     resetTranscript
   } = useSpeechRecognition();
 
-  // Map profile career path to interview assistant career track
-  function mapProfileToCareerTrack(careerPath: string): 'consulting' | 'investment-banking' | 'tech' | 'general' {
+  function mapProfileToCareerTrack(careerPath: string): CareerTrack {
     if (!careerPath) return 'general';
     
     switch (careerPath) {
@@ -60,7 +57,6 @@ export function PracticeTab({
     }
   }
 
-  // Handle speech recording toggle
   const toggleRecording = () => {
     if (isSpeechRecording) {
       stopSpeechRecognition();
@@ -75,7 +71,6 @@ export function PracticeTab({
     setIsAnalyzing(true);
     toast.info("Analyzing your response...");
     
-    // Simulate analysis (would connect to AI API in production)
     setTimeout(() => {
       setIsAnalyzed(true);
       setIsAnalyzing(false);
@@ -83,7 +78,6 @@ export function PracticeTab({
     }, 2000);
   };
 
-  // Reset for new practice session
   const handleStartNewSession = () => {
     resetTranscript();
     setIsAnalyzed(false);

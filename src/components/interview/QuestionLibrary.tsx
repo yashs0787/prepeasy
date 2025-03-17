@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { InterviewQuestion } from './useInterviewAssistant';
+import { InterviewQuestion } from './types/interviewTypes';
 
 interface QuestionLibraryProps {
   questions: InterviewQuestion[];
