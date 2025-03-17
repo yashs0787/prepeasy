@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
-import { Briefcase, Building, Users, HandShake, ArrowRight, Send, BookOpen } from 'lucide-react';
+import { Briefcase, Building, Users, Handshake, ArrowRight, Send, BookOpen } from 'lucide-react';
 import { CaseStudyData, CaseType, CaseFramework } from './types/interviewTypes';
 import { consultingCaseStudies, getCaseStudiesByType, getCaseStudyById } from './utils/caseStudyData';
 import { consultingFrameworks, getFrameworksForCaseType } from './utils/caseFrameworks';
