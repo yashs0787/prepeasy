@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -89,7 +88,7 @@ export function CasePractice({ onSelectCase }: CasePracticeProps) {
       case 'market-entry':
         return <ArrowRight className="h-4 w-4" />;
       case 'growth-strategy':
-        return <HandShake className="h-4 w-4" />; 
+        return <Handshake className="h-4 w-4" />; 
       default:
         return <Users className="h-4 w-4" />;
     }
