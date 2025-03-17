@@ -1,110 +1,118 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mic, Send, Play, Pause, RotateCw, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSpeechRecognition } from './useSpeechRecognition';
+import { CareerTrackSelector } from './CareerTrackSelector';
+import { useInterviewAssistant } from './useInterviewAssistant';
+import { TranscriptAnalysis } from './TranscriptAnalysis';
 
 interface InterviewAssistantProps {
   profile?: any;
 }
 
 export function InterviewAssistant({ profile }: InterviewAssistantProps) {
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPracticing, setIsPracticing] = useState(false);
-  const [activeTab, setActiveTab] = useState('prepare');
-  const [question, setQuestion] = useState('');
-  const [feedback, setFeedback] = useState('');
-  const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-  const [interviewType, setInterviewType] = useState('technical');
+  // Initialize careerTrack based on user profile
+  const initialCareerTrack = mapProfileToCareerTrack(profile?.careerPath);
   
-  // Sample questions based on career path
-  const careerPath = profile?.careerPath || 'tech';
+  const {
+    careerTrack,
+    setCareerTrack,
+    interviewType,
+    setInterviewType,
+    isRecording,
+    isPracticing,
+    selectedQuestion,
+    feedback,
+    detailedFeedback,
+    activeTab,
+    setActiveTab,
+    filteredQuestions,
+    startRecording,
+    stopRecording,
+    startPractice,
+    stopPractice,
+    handleSelectQuestion,
+    handleQuestionSubmit,
+    question,
+    setQuestion
+  } = useInterviewAssistant(initialCareerTrack);
   
-  const sampleQuestions = {
-    tech: [
-      "Explain how you would design a scalable microservice architecture.",
-      "Describe a challenging technical problem you've solved recently.",
-      "How do you stay updated with the latest technology trends?",
-    ],
-    finance: [
-      "How do you analyze financial risk in an investment portfolio?",
-      "Explain how you would value a company for acquisition.",
-      "What financial metrics do you prioritize when evaluating business performance?",
-    ],
-    consulting: [
-      "Walk me through how you would approach a client with declining sales.",
-      "Describe a time when you had to persuade a difficult stakeholder.",
-      "How do you structure your approach to solving complex business problems?",
-    ],
-    general: [
-      "Tell me about yourself and your career aspirations.",
-      "Describe a time when you faced a significant challenge at work.",
-      "What are your greatest professional strengths and weaknesses?",
-    ],
-  };
-
-  const getQuestionsForPath = () => {
-    if (careerPath === 'tech' || careerPath === 'technology') return sampleQuestions.tech;
-    if (careerPath === 'finance' || careerPath === 'finance_accounting') return sampleQuestions.finance;
-    if (careerPath === 'consulting' || careerPath === 'management_consulting') return sampleQuestions.consulting;
-    return sampleQuestions.general;
-  };
-
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    toast.info("Microphone recording started");
-    // This would normally connect to a speech-to-text API
-    setTimeout(() => {
-      toast.success("Answer recorded. Processing feedback...");
-      setIsRecording(false);
-      setFeedback(
-        "Great answer! You articulated your technical knowledge well. Consider adding more specific examples of projects where you've implemented these concepts. Also, try to connect your answer more directly to the company's specific needs."
-      );
-    }, 5000);
-  };
-
-  const handleStopRecording = () => {
-    setIsRecording(false);
-    toast.info("Recording stopped");
-  };
-
-  const handleStartPractice = () => {
-    setIsPracticing(true);
-    toast.info("Starting mock interview session");
-  };
-
-  const handleStopPractice = () => {
-    setIsPracticing(false);
-    toast.info("Interview practice session ended");
-  };
-
-  const handleQuestionSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!question.trim()) return;
+  // Speech recognition hook
+  const {
+    transcript,
+    isSupported,
+    startRecording: startSpeechRecognition,
+    stopRecording: stopSpeechRecognition,
+    isRecording: isSpeechRecording,
+    resetTranscript
+  } = useSpeechRecognition();
+  
+  // Handle career track changes from profile updates
+  useEffect(() => {
+    if (profile?.careerPath) {
+      const mappedTrack = mapProfileToCareerTrack(profile.careerPath);
+      setCareerTrack(mappedTrack);
+    }
+  }, [profile?.careerPath, setCareerTrack]);
+  
+  // Map profile career path to interview assistant career track
+  function mapProfileToCareerTrack(careerPath: string): 'consulting' | 'investment-banking' | 'tech' | 'general' {
+    if (!careerPath) return 'general';
     
-    toast.info("Processing your question...");
+    switch (careerPath) {
+      case 'consulting':
+      case 'management_consulting': 
+        return 'consulting';
+      case 'investment_banking': 
+        return 'investment-banking';
+      case 'tech':
+      case 'technology': 
+        return 'tech';
+      default: 
+        return 'general';
+    }
+  }
+  
+  // Handle speech recording toggle
+  const toggleRecording = () => {
+    if (isSpeechRecording) {
+      stopSpeechRecognition();
+      stopRecording();
+    } else {
+      startSpeechRecognition();
+      startRecording();
+    }
+  };
+  
+  // Analysis handlers
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  
+  const handleAnalyze = () => {
+    if (!transcript.trim()) return;
     
+    setIsAnalyzing(true);
+    toast.info("Analyzing your response...");
+    
+    // Simulate analysis (would connect to AI API in production)
     setTimeout(() => {
-      setFeedback(
-        "This is a common behavioral question focusing on your problem-solving abilities. In your answer, use the STAR method (Situation, Task, Action, Result) to structure a concise response. Focus on a specific example where you successfully overcame a challenge, emphasizing your analytical approach and the positive outcome."
-      );
+      setIsAnalyzed(true);
+      setIsAnalyzing(false);
+      toast.success("Analysis complete!");
     }, 2000);
   };
-
-  const handleSelectQuestion = (q: string) => {
-    setSelectedQuestion(q);
-    toast.info("Question selected");
-    
-    setTimeout(() => {
-      setFeedback(
-        "This question assesses your technical depth and communication skills. Start with a high-level overview of microservice architecture principles, then dive into specific considerations like service boundaries, communication patterns, and deployment strategies. Include a brief example from your experience if possible."
-      );
-    }, 1000);
+  
+  // Reset for new practice session
+  const handleStartNewSession = () => {
+    resetTranscript();
+    setIsAnalyzed(false);
+    startPractice();
   };
 
   return (
@@ -124,21 +132,39 @@ export function InterviewAssistant({ profile }: InterviewAssistantProps) {
           </TabsList>
           
           <TabsContent value="prepare" className="space-y-4">
-            <div className="space-y-4">
+            {/* Career track selector */}
+            <CareerTrackSelector 
+              selectedTrack={careerTrack}
+              onSelectTrack={setCareerTrack}
+            />
+            
+            {/* Question library */}
+            <div className="space-y-4 mt-6">
               <div>
                 <h3 className="text-lg font-medium mb-2">Question Library</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Browse common interview questions for your career path
+                  Browse common interview questions for your career track
                 </p>
                 
                 <div className="grid gap-2">
-                  {getQuestionsForPath().map((q, index) => (
+                  {filteredQuestions.map((q, index) => (
                     <div 
-                      key={index} 
-                      className={`p-3 border rounded-md cursor-pointer hover:bg-accent transition-colors ${selectedQuestion === q ? 'border-primary bg-primary/10' : ''}`}
+                      key={q.id} 
+                      className={`p-3 border rounded-md cursor-pointer hover:bg-accent transition-colors ${selectedQuestion?.id === q.id ? 'border-primary bg-primary/10' : ''}`}
                       onClick={() => handleSelectQuestion(q)}
                     >
-                      <p>{q}</p>
+                      <div className="flex justify-between items-center">
+                        <p>{q.text}</p>
+                        {q.difficulty && (
+                          <span className={`text-xs ${
+                            q.difficulty === 'basic' ? 'bg-green-100 text-green-800' :
+                            q.difficulty === 'intermediate' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          } px-2 py-1 rounded-full`}>
+                            {q.difficulty}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -181,6 +207,7 @@ export function InterviewAssistant({ profile }: InterviewAssistantProps) {
                       <SelectItem value="technical">Technical Interview</SelectItem>
                       <SelectItem value="behavioral">Behavioral Interview</SelectItem>
                       <SelectItem value="case">Case Study Interview</SelectItem>
+                      <SelectItem value="financial">Financial Interview</SelectItem>
                       <SelectItem value="general">General Interview</SelectItem>
                     </SelectContent>
                   </Select>
@@ -189,13 +216,15 @@ export function InterviewAssistant({ profile }: InterviewAssistantProps) {
                 <div className="bg-muted p-4 rounded-lg">
                   <h3 className="font-medium mb-2">Current Question:</h3>
                   <p className="mb-4">{
-                    isPracticing 
-                      ? "Describe a challenging project you worked on and how you overcame obstacles to deliver it successfully."
-                      : "Start a practice session to get interview questions"
+                    selectedQuestion 
+                      ? selectedQuestion.text
+                      : isPracticing 
+                        ? "Describe a challenging project you worked on and how you overcame obstacles to deliver it successfully."
+                        : "Start a practice session to get interview questions"
                   }</p>
                   
                   {!isPracticing ? (
-                    <Button onClick={handleStartPractice} className="w-full">
+                    <Button onClick={handleStartNewSession} className="w-full">
                       <Play className="mr-2 h-4 w-4" /> Start Practice Session
                     </Button>
                   ) : (
@@ -203,16 +232,26 @@ export function InterviewAssistant({ profile }: InterviewAssistantProps) {
                       <div className="flex justify-center">
                         <Button
                           size="lg"
-                          className={`rounded-full h-16 w-16 ${isRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
-                          onClick={isRecording ? handleStopRecording : handleStartRecording}
+                          className={`rounded-full h-16 w-16 ${isSpeechRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                          onClick={toggleRecording}
+                          disabled={!isSupported}
                         >
                           <Mic className="h-6 w-6" />
                         </Button>
                       </div>
                       <div className="text-center text-sm">
-                        {isRecording ? 'Recording... Click to stop' : 'Click to record your answer'}
+                        {isSpeechRecording ? 'Recording... Click to stop' : 'Click to record your answer'}
                       </div>
-                      <Button variant="outline" onClick={handleStopPractice} className="w-full">
+                      
+                      <TranscriptAnalysis
+                        transcript={transcript}
+                        onTranscriptChange={resetTranscript}
+                        onAnalyze={handleAnalyze}
+                        isAnalyzing={isAnalyzing}
+                        isAnalyzed={isAnalyzed}
+                      />
+                      
+                      <Button variant="outline" onClick={stopPractice} className="w-full mt-4">
                         <Pause className="mr-2 h-4 w-4" /> End Practice Session
                       </Button>
                     </div>
@@ -220,10 +259,44 @@ export function InterviewAssistant({ profile }: InterviewAssistantProps) {
                 </div>
               </div>
               
-              {feedback && (
-                <div className="p-4 bg-muted rounded-lg">
-                  <h4 className="font-medium mb-2">AI Feedback:</h4>
-                  <p className="text-sm">{feedback}</p>
+              {isAnalyzed && detailedFeedback && (
+                <div className="p-4 border rounded-lg space-y-4">
+                  <h4 className="font-medium">AI Feedback:</h4>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Overall Score</span>
+                    <div className="flex items-center">
+                      <span className="text-lg font-bold mr-2">{detailedFeedback.score}</span>
+                      <span className="text-sm text-muted-foreground">/100</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium text-green-600">Strengths</h5>
+                    <ul className="text-sm list-disc pl-5 space-y-1">
+                      {detailedFeedback.strengths.map((strength, idx) => (
+                        <li key={idx}>{strength}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h5 className="text-sm font-medium text-amber-600">Areas to Improve</h5>
+                    <ul className="text-sm list-disc pl-5 space-y-1">
+                      {detailedFeedback.improvements.map((improvement, idx) => (
+                        <li key={idx}>{improvement}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  
+                  {detailedFeedback.example && (
+                    <div className="space-y-2">
+                      <h5 className="text-sm font-medium">Example Strong Response</h5>
+                      <div className="text-sm p-3 bg-muted rounded-md">
+                        {detailedFeedback.example}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
