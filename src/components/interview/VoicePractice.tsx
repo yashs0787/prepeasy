@@ -1,9 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mic, Pause, Play } from 'lucide-react';
+import { Mic, Pause, Play, Volume2, Settings, Loader2 } from 'lucide-react';
 import { InterviewQuestion, InterviewType } from './useInterviewAssistant';
+import { VoiceSettings } from './VoiceSettings';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useElevenLabsVoice } from './useElevenLabsVoice';
 
 interface VoicePracticeProps {
   interviewType: InterviewType;
@@ -28,11 +31,36 @@ export function VoicePractice({
   stopRecording,
   selectedQuestion
 }: VoicePracticeProps) {
+  const [showVoiceSettings, setShowVoiceSettings] = useState(false);
+  const { 
+    apiKey, 
+    speakText, 
+    isPlaying, 
+    stopSpeaking 
+  } = useElevenLabsVoice();
+
+  const readQuestionAloud = async () => {
+    if (selectedQuestion && apiKey) {
+      await speakText(selectedQuestion.text);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid gap-4">
         <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Interview Type</label>
+          <div className="flex justify-between items-center mb-1">
+            <label className="text-sm font-medium">Interview Type</label>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 px-2 text-xs" 
+              onClick={() => setShowVoiceSettings(true)}
+            >
+              <Settings className="h-3.5 w-3.5 mr-1" />
+              Voice Settings
+            </Button>
+          </div>
           <Select value={interviewType} onValueChange={(value) => setInterviewType(value as InterviewType)}>
             <SelectTrigger>
               <SelectValue placeholder="Select interview type" />
@@ -48,7 +76,24 @@ export function VoicePractice({
         </div>
         
         <div className="bg-muted p-4 rounded-lg">
-          <h3 className="font-medium mb-2">Current Question:</h3>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-medium">Current Question:</h3>
+            {isPracticing && selectedQuestion && apiKey && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 px-2"
+                onClick={isPlaying ? stopSpeaking : readQuestionAloud}
+                disabled={!selectedQuestion}
+              >
+                {isPlaying ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Volume2 className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            )}
+          </div>
           <p className="mb-4">{
             isPracticing && selectedQuestion
               ? selectedQuestion.text
@@ -80,6 +125,16 @@ export function VoicePractice({
           )}
         </div>
       </div>
+
+      {/* Voice Settings Dialog */}
+      <Dialog open={showVoiceSettings} onOpenChange={setShowVoiceSettings}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Voice Settings</DialogTitle>
+          </DialogHeader>
+          <VoiceSettings onClose={() => setShowVoiceSettings(false)} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
