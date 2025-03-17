@@ -36,7 +36,7 @@ export default function Index() {
       if (user) {
         navigate('/dashboard');
       } else {
-        navigate('/signin?tab=signup');
+        navigate('/sign-in?tab=signup');
       }
       return;
     }

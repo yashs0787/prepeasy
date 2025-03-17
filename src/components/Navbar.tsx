@@ -47,12 +47,12 @@ export function Navbar() {
             </Link>
           ) : (
             <>
-              <Link to="/signin">
+              <Link to="/sign-in">
                 <Button variant="ghost" className="hidden md:inline-flex hover:text-neon-purple hover:bg-neon-purple/10">
                   Sign In
                 </Button>
               </Link>
-              <Link to="/signin?tab=signup">
+              <Link to="/sign-in?tab=signup">
                 <Button className="hidden md:inline-flex neon-button">
                   Sign Up
                 </Button>
