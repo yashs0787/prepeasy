@@ -9,81 +9,25 @@ import { PersonalInfoCard } from "./settings/PersonalInfoCard";
 import { JobPreferencesCard } from "./settings/JobPreferencesCard";
 import { PasswordCard } from "./settings/PasswordCard";
 import { DeleteAccountCard } from "./settings/DeleteAccountCard";
+import { useProfileData } from "./settings/useProfileData";
 
 export function SettingsTab() {
   const { user } = useContext(AuthContext);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
-  
-  const [profile, setProfile] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    location: '',
-    bio: '',
-    jobPreferences: {
-      title: '',
-      industry: '',
-      jobType: 'full-time',
-      minSalary: '',
-      remote: true
-    }
-  });
+  const {
+    profile,
+    setProfile,
+    passwordForm,
+    setPasswordForm,
+    isLoading,
+    fetchProfileData
+  } = useProfileData(user);
   
   useEffect(() => {
     if (user) {
-      // Pre-fill email from auth
-      setProfile(prev => ({
-        ...prev,
-        email: user.email || ''
-      }));
-      
-      // Fetch profile data
       fetchProfileData();
     }
-  }, [user]);
-  
-  const fetchProfileData = async () => {
-    if (!user) return;
-    
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-      
-      if (error) throw error;
-      
-      if (data) {
-        setProfile(prev => ({
-          ...prev,
-          fullName: data.full_name || '',
-          phone: data.phone || '',
-          location: data.location || '',
-          bio: data.bio || '',
-          jobPreferences: {
-            title: data.job_title || '',
-            industry: data.industry || '',
-            jobType: data.job_type || 'full-time',
-            minSalary: data.min_salary || '',
-            remote: data.remote || true
-          }
-        }));
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Failed to load profile data");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [user, fetchProfileData]);
   
   const handleSaveProfile = async () => {
     if (!user) return;
