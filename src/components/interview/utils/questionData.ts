@@ -1,5 +1,5 @@
 
-import { CareerTrack, InterviewQuestion } from '../types/interviewTypes';
+import { CareerTrack, InterviewQuestion, CaseType } from '../types/interviewTypes';
 
 export const getQuestionsForTrack = (careerTrack: CareerTrack): InterviewQuestion[] => {
   const baseQuestions: InterviewQuestion[] = [
@@ -58,6 +58,8 @@ export const getQuestionsForTrack = (careerTrack: CareerTrack): InterviewQuestio
       type: 'case',
       difficulty: 'intermediate',
       category: 'Profitability',
+      caseType: 'profitability',
+      framework: 'profit-framework',
     },
     {
       id: 'cons2',
@@ -66,6 +68,8 @@ export const getQuestionsForTrack = (careerTrack: CareerTrack): InterviewQuestio
       type: 'case',
       difficulty: 'advanced',
       category: 'Market Entry',
+      caseType: 'market-entry',
+      framework: 'market-entry',
     },
     {
       id: 'cons3',
@@ -75,6 +79,36 @@ export const getQuestionsForTrack = (careerTrack: CareerTrack): InterviewQuestio
       difficulty: 'basic',
       category: 'Frameworks',
       sampleAnswer: 'The MECE principle stands for Mutually Exclusive, Collectively Exhaustive. When using this approach, I would first break down the problem into categories that don\'t overlap (mutually exclusive) but together cover all possibilities (collectively exhaustive). For example, when analyzing a company\'s revenue decline, I would categorize causes into external factors (market conditions, competition) and internal factors (product quality, pricing strategy, operational issues). This ensures no causes are double-counted or missed entirely.'
+    },
+    {
+      id: 'cons4',
+      text: 'Estimate the number of gas stations in the United States.',
+      careerTrack: 'consulting',
+      type: 'case',
+      difficulty: 'basic',
+      category: 'Market Sizing',
+      caseType: 'market-sizing',
+      framework: 'market-sizing',
+    },
+    {
+      id: 'cons5',
+      text: 'A retail client is experiencing flat growth despite increased store openings. What would you investigate?',
+      careerTrack: 'consulting',
+      type: 'case',
+      difficulty: 'intermediate',
+      category: 'Growth Strategy',
+      caseType: 'growth-strategy',
+      framework: '4ps',
+    },
+    {
+      id: 'cons6',
+      text: 'A hospital network wants to reduce costs by 15% without affecting quality of care. How would you approach this?',
+      careerTrack: 'consulting',
+      type: 'case',
+      difficulty: 'advanced',
+      category: 'Cost Reduction',
+      caseType: 'cost-reduction',
+      framework: 'profit-framework',
     }
   ];
 

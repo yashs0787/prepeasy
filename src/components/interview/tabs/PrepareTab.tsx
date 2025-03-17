@@ -14,6 +14,8 @@ import { getLearningResources, getRecommendedPath } from '../utils/learningPathD
 import { toast } from 'sonner';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CasePractice } from '../CasePractice';
 
 interface PrepareTabProps {
   careerTrack: CareerTrack;
@@ -27,6 +29,7 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
   const [similarQuestions, setSimilarQuestions] = useState<InterviewQuestion[]>([]);
   const [interviewType, setInterviewType] = useState<InterviewType>('general');
   const [learningResources, setLearningResources] = useState<LearningResource[]>([]);
+  const [prepareTabView, setPrepareTabView] = useState<'questions' | 'case-practice'>('questions');
   
   // Get filtered questions based on career track and interview type
   const filteredQuestions = getQuestionsForTrack(careerTrack).filter(q => 
@@ -119,6 +122,17 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
     setInterviewType(value as InterviewType);
   };
 
+  useEffect(() => {
+    // If the career track is consulting, automatically show case practice for convenience
+    if (careerTrack === 'consulting') {
+      setInterviewType('case');
+      if (prepareTabView !== 'case-practice') {
+        // Only show toast when changing the view
+        toast.info("Case practice tools are available for consulting track");
+      }
+    }
+  }, [careerTrack]);
+
   return (
     <div className="space-y-4">
       {/* Career track selector */}
@@ -146,74 +160,105 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
         </Select>
       </div>
       
+      {/* Show case practice view toggle only for consulting track + case interviews */}
+      {careerTrack === 'consulting' && interviewType === 'case' && (
+        <div className="flex justify-center mt-4">
+          <TabsList>
+            <TabsTrigger 
+              value="questions"
+              onClick={() => setPrepareTabView('questions')}
+              className={prepareTabView === 'questions' ? 'data-[state=active]' : ''}
+            >
+              Question Library
+            </TabsTrigger>
+            <TabsTrigger 
+              value="case-practice"
+              onClick={() => setPrepareTabView('case-practice')}
+              className={prepareTabView === 'case-practice' ? 'data-[state=active]' : ''}
+            >
+              Case Practice
+            </TabsTrigger>
+          </TabsList>
+        </div>
+      )}
+      
       {/* Question library and learning resources */}
-      <div className="space-y-4 mt-6">
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">
-              {showingSearchResults ? 'Search Results' : 'Learning Center'}
-            </h3>
+      {(prepareTabView === 'questions' || careerTrack !== 'consulting' || interviewType !== 'case') && (
+        <div className="space-y-4 mt-6">
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">
+                {showingSearchResults ? 'Search Results' : 'Learning Center'}
+              </h3>
+              
+              {showingSearchResults && (
+                <Button variant="outline" size="sm" onClick={handleResetSearch}>
+                  Back to Library
+                </Button>
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              {showingSearchResults 
+                ? 'Showing questions relevant to your search' 
+                : 'Browse questions and resources for your career track'}
+            </p>
             
-            {showingSearchResults && (
-              <Button variant="outline" size="sm" onClick={handleResetSearch}>
-                Back to Library
-              </Button>
-            )}
-          </div>
-          <p className="text-sm text-muted-foreground mb-4">
-            {showingSearchResults 
-              ? 'Showing questions relevant to your search' 
-              : 'Browse questions and resources for your career track'}
-          </p>
-          
-          <QuestionLibrary 
-            questions={displayQuestions}
-            selectedQuestion={selectedQuestion}
-            onSelectQuestion={handleSelectQuestion}
-            onSearch={handleSearch}
-            isSearching={isSearching}
-            learningResources={learningResources}
-          />
-        </div>
-        
-        {selectedQuestion && feedback && (
-          <div className="space-y-4">
-            <FeedbackDisplay feedback={feedback} />
-            
-            {similarQuestions.length > 0 && (
-              <div className="border-t pt-4">
-                <h4 className="font-medium mb-2">Related Questions</h4>
-                <div className="space-y-2">
-                  {similarQuestions.map(q => (
-                    <div 
-                      key={q.id} 
-                      className="p-2 border rounded-md text-sm cursor-pointer hover:bg-accent"
-                      onClick={() => handleSelectQuestion(q)}
-                    >
-                      {q.text}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        
-        <div className="border-t pt-4 mt-4">
-          <h3 className="text-lg font-medium mb-2">Ask for Advice</h3>
-          <form onSubmit={handleQuestionSubmit} className="space-y-4">
-            <Textarea
-              placeholder="Type an interview question you'd like advice on..."
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              className="min-h-[100px]"
+            <QuestionLibrary 
+              questions={displayQuestions}
+              selectedQuestion={selectedQuestion}
+              onSelectQuestion={handleSelectQuestion}
+              onSearch={handleSearch}
+              isSearching={isSearching}
+              learningResources={learningResources}
             />
-            <Button type="submit" className="flex gap-2">
-              <Send size={16} /> Get Advice
-            </Button>
-          </form>
+          </div>
+          
+          {selectedQuestion && feedback && (
+            <div className="space-y-4">
+              <FeedbackDisplay feedback={feedback} />
+              
+              {similarQuestions.length > 0 && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium mb-2">Related Questions</h4>
+                  <div className="space-y-2">
+                    {similarQuestions.map(q => (
+                      <div 
+                        key={q.id} 
+                        className="p-2 border rounded-md text-sm cursor-pointer hover:bg-accent"
+                        onClick={() => handleSelectQuestion(q)}
+                      >
+                        {q.text}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div className="border-t pt-4 mt-4">
+            <h3 className="text-lg font-medium mb-2">Ask for Advice</h3>
+            <form onSubmit={handleQuestionSubmit} className="space-y-4">
+              <Textarea
+                placeholder="Type an interview question you'd like advice on..."
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                className="min-h-[100px]"
+              />
+              <Button type="submit" className="flex gap-2">
+                <Send size={16} /> Get Advice
+              </Button>
+            </form>
+          </div>
         </div>
-      </div>
+      )}
+      
+      {/* Case practice view for consulting */}
+      {prepareTabView === 'case-practice' && careerTrack === 'consulting' && interviewType === 'case' && (
+        <div className="mt-6">
+          <CasePractice />
+        </div>
+      )}
     </div>
   );
 }
