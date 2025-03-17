@@ -1,4 +1,3 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
 
@@ -16,11 +15,20 @@ export interface InterviewQuestion {
   tips?: string[];
 }
 
+export interface LearningResource {
+  title: string;
+  type: 'video' | 'article' | 'practice';
+  url?: string;
+}
+
 export interface FeedbackResult {
   score: number;
   strengths: string[];
   improvements: string[];
   example?: string;
+  scoreBreakdown?: Record<string, number>;
+  learningResources?: LearningResource[];
+  nextSteps?: string;
 }
 
 export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general') {
@@ -35,9 +43,7 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
   const [activeTab, setActiveTab] = useState('prepare');
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
 
-  // Questions database based on career track
   const getQuestionsForTrack = useCallback((): InterviewQuestion[] => {
-    // Base questions available for all tracks
     const baseQuestions: InterviewQuestion[] = [
       {
         id: 'gen1',
@@ -62,7 +68,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
       }
     ];
 
-    // Tech track questions
     const techQuestions: InterviewQuestion[] = [
       {
         id: 'tech1',
@@ -87,7 +92,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
       }
     ];
 
-    // Consulting track questions
     const consultingQuestions: InterviewQuestion[] = [
       {
         id: 'cons1',
@@ -116,7 +120,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
       }
     ];
 
-    // Investment Banking track questions
     const ibQuestions: InterviewQuestion[] = [
       {
         id: 'ib1',
@@ -145,7 +148,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
       }
     ];
 
-    // Return questions based on career track
     switch (careerTrack) {
       case 'tech':
         return [...baseQuestions, ...techQuestions];
@@ -158,7 +160,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
     }
   }, [careerTrack]);
 
-  // Filter questions based on interview type and career track
   const filteredQuestions = useCallback(() => {
     const allQuestions = getQuestionsForTrack();
     return interviewType === 'general' 
@@ -167,19 +168,16 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
   }, [getQuestionsForTrack, interviewType]);
 
   const startRecording = useCallback(() => {
-    // In a real implementation, this would connect to a speech-to-text API
     setIsRecording(true);
     toast.info("Microphone recording started");
     
-    // Simulate recording and processing
     setTimeout(() => {
       toast.success("Answer recorded. Processing feedback...");
       setIsRecording(false);
       
-      // Generate sample feedback based on career track and question
       let feedbackMessage = '';
       let detailedResult: FeedbackResult = {
-        score: Math.floor(Math.random() * 30) + 70, // Random score between 70-100
+        score: Math.floor(Math.random() * 30) + 70,
         strengths: ['Clear communication', 'Well-structured response'],
         improvements: ['Could provide more specific examples', 'Consider quantifying your impact']
       };
@@ -216,7 +214,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
     setIsPracticing(true);
     toast.info("Starting mock interview session");
     
-    // Select a random question for practice
     const questions = filteredQuestions();
     if (questions.length > 0) {
       const randomIndex = Math.floor(Math.random() * questions.length);
@@ -236,7 +233,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
     setSelectedQuestion(question);
     toast.info("Question selected");
     
-    // Generate sample feedback strategy based on the question
     setTimeout(() => {
       let strategy = '';
       
@@ -260,7 +256,6 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
     
     toast.info("Processing your question...");
     
-    // Simulate AI processing
     setTimeout(() => {
       const advice = "This question evaluates your problem-solving approach and analytical thinking. Structure your answer using a clear framework, state your assumptions explicitly, and walk through your reasoning step by step. Use specific examples from your experience to demonstrate your skills.";
       setFeedback(advice);
