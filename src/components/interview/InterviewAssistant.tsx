@@ -9,6 +9,7 @@ import { useInterviewAssistant } from './useInterviewAssistant';
 import { PrepareTab } from './tabs/PrepareTab';
 import { PracticeTab } from './tabs/PracticeTab';
 import { AnalyzeTab } from './tabs/AnalyzeTab';
+import { Input } from '@/components/ui/input'; // Added the missing import
 
 interface InterviewAssistantProps {
   profile?: any;
