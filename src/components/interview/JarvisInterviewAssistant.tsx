@@ -1,447 +1,327 @@
-
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { FeedbackDisplay } from './FeedbackDisplay';
-import { TranscriptAnalysis } from './TranscriptAnalysis';
-import { CasePractice } from './CasePractice';
-import { useInterviewAssistant, CareerTrack } from './useInterviewAssistant';
-import { useSpeechRecognition } from './useSpeechRecognition';
-import {
-  Mic, MicOff, Video, VideoOff, MessageSquare, 
-  Play, Pause, RotateCw, Brain, Briefcase, 
-  User, Clock, BarChart, Award, Sparkles
-} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, Mic, MicOff, Send, Video, MessageSquare, BookOpen, Lightbulb } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 
-interface JarvisInterviewAssistantProps {
-  profile?: any;
-}
+const INTERVIEW_TYPES = [
+  { id: 'behavioral', name: 'Behavioral Interview' },
+  { id: 'technical', name: 'Technical Interview' },
+  { id: 'case', name: 'Case Interview' },
+  { id: 'general', name: 'General Practice' },
+];
 
-export function JarvisInterviewAssistant({ profile }: JarvisInterviewAssistantProps) {
-  const [activeView, setActiveView] = useState<'interview' | 'case-practice'>('interview');
-  const [showAITyping, setShowAITyping] = useState(false);
-  const [aiResponse, setAiResponse] = useState<string>('');
+const DIFFICULTY_LEVELS = [
+  { id: 'beginner', name: 'Beginner' },
+  { id: 'intermediate', name: 'Intermediate' },
+  { id: 'advanced', name: 'Advanced' },
+];
+
+export const JarvisInterviewAssistant: React.FC = () => {
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState('chat');
+  const [interviewType, setInterviewType] = useState('behavioral');
+  const [difficultyLevel, setDifficultyLevel] = useState('intermediate');
+  const [isRecording, setIsRecording] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [userInput, setUserInput] = useState('');
+  const [conversation, setConversation] = useState<Array<{role: string, content: string}>>([
+    {
+      role: 'assistant',
+      content: "Hello! I'm Jarvis, your AI interview coach. How can I help you prepare for your interviews today?"
+    }
+  ]);
   
-  const initialCareerTrack = mapProfileToCareerTrack(profile?.careerPath);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  const {
-    careerTrack,
-    setCareerTrack,
-    interviewType,
-    setInterviewType,
-    isPracticing,
-    activeTab,
-    setActiveTab,
-    startPractice,
-    stopPractice,
-    selectedQuestion,
-    feedback,
-    detailedFeedback,
-  } = useInterviewAssistant(initialCareerTrack);
-
-  const {
-    transcript,
-    isSupported,
-    startRecording,
-    stopRecording,
-    isRecording,
-    resetTranscript
-  } = useSpeechRecognition();
-
-  // Simulate AI typing effect
   useEffect(() => {
-    if (!feedback) return;
+    scrollToBottom();
+  }, [conversation]);
+  
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
+  const handleSendMessage = async () => {
+    if (!userInput.trim()) return;
     
-    setShowAITyping(true);
-    setAiResponse('');
+    const newMessage = { role: 'user', content: userInput };
+    setConversation([...conversation, newMessage]);
+    setUserInput('');
+    setIsLoading(true);
     
-    const fullText = detailedFeedback ? 
-      `I've analyzed your response and have some feedback for you.` : 
-      feedback;
+    try {
+      // Simulate API call to get AI response
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-    let index = 0;
-    const typingInterval = setInterval(() => {
-      if (index < fullText.length) {
-        setAiResponse(prev => prev + fullText.charAt(index));
-        index++;
+      let response;
+      if (userInput.toLowerCase().includes('tell me about yourself')) {
+        response = "That's a common interview question! When answering 'Tell me about yourself', structure your response in 3 parts: 1) Present: Start with your current role and responsibilities, 2) Past: Briefly mention relevant experience that led you here, 3) Future: Express why you're excited about this opportunity. Keep it concise (60-90 seconds) and relevant to the job. Would you like to practice this response?";
+      } else if (userInput.toLowerCase().includes('weakness')) {
+        response = "When discussing weaknesses, choose something genuine but not critical to the job. Explain how you're actively working to improve it. For example: 'I used to struggle with public speaking, so I joined Toastmasters and have been volunteering to lead more team presentations.' Would you like more examples?";
       } else {
-        setShowAITyping(false);
-        clearInterval(typingInterval);
+        response = "That's a great question to prepare for! Would you like me to provide some structure for your answer, give you example responses, or would you prefer to practice answering it first and I can provide feedback?";
       }
-    }, 15);
-    
-    return () => clearInterval(typingInterval);
-  }, [feedback, detailedFeedback]);
-
-  // Map profile career path to interview assistant career track
-  function mapProfileToCareerTrack(careerPath: string): CareerTrack {
-    if (!careerPath) return 'general';
-    
-    switch (careerPath) {
-      case 'consulting':
-      case 'management_consulting': 
-        return 'consulting';
-      case 'investment_banking': 
-        return 'investment-banking';
-      case 'tech':
-      case 'technology': 
-        return 'tech';
-      default: 
-        return 'general';
+      
+      setConversation(prev => [...prev, { role: 'assistant', content: response }]);
+    } catch (error) {
+      toast.error("Sorry, I couldn't process your request");
+    } finally {
+      setIsLoading(false);
     }
-  }
-
-  const handleStartRecording = () => {
-    if (!isSupported) {
-      toast.error("Speech recognition is not supported in your browser");
-      return;
-    }
-    
-    if (!isPracticing) {
-      startPractice();
-    }
-    
-    resetTranscript();
-    startRecording();
-    toast.info("Recording started");
   };
-
-  const handleStopRecording = async () => {
-    stopRecording();
-    toast.info("Analyzing your response...");
-    
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 2000));
-  };
-
-  const handleAnalyzeResponse = () => {
-    if (!transcript.trim()) {
-      toast.error("Please record or type your response first");
-      return;
+  
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
     }
-    
-    // Simulate a loading state
-    toast.info("Analyzing your response...");
   };
-
+  
+  const toggleRecording = () => {
+    if (!isRecording) {
+      // Request microphone permission
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          setIsRecording(true);
+          toast.info("Voice recording started");
+          // In a real app, you would start recording here
+        })
+        .catch(err => {
+          toast.error("Microphone access denied");
+        });
+    } else {
+      setIsRecording(false);
+      toast.info("Voice recording stopped");
+      // In a real app, you would stop recording and process the audio here
+    }
+  };
+  
+  const startPracticeSession = () => {
+    const interviewTypeName = INTERVIEW_TYPES.find(t => t.id === interviewType)?.name;
+    const difficultyName = DIFFICULTY_LEVELS.find(d => d.id === difficultyLevel)?.name;
+    
+    setConversation([
+      {
+        role: 'assistant',
+        content: `I'll be your interviewer for this ${interviewTypeName} practice session at ${difficultyName} level. Let's begin with the first question: Tell me about yourself and why you're interested in this position?`
+      }
+    ]);
+    
+    setActiveTab('chat');
+  };
+  
   return (
-    <div className="bg-gradient-to-br from-indigo-50 to-slate-50 p-4 sm:p-8 rounded-xl shadow-lg">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-center">
-              <Sparkles className="h-6 w-6 text-white" />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2">
+        <Card className="h-full flex flex-col">
+          <CardHeader>
+            <CardTitle>Jarvis Interview Assistant</CardTitle>
+            <CardDescription>
+              Practice interviews and get real-time feedback
+            </CardDescription>
+          </CardHeader>
+          
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+            <div className="px-6">
+              <TabsList className="grid grid-cols-3 mb-4">
+                <TabsTrigger value="chat">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Chat
+                </TabsTrigger>
+                <TabsTrigger value="video">
+                  <Video className="h-4 w-4 mr-2" />
+                  Video
+                </TabsTrigger>
+                <TabsTrigger value="resources">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Resources
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            
+            <TabsContent value="chat" className="flex-1 flex flex-col px-6 space-y-4 overflow-hidden">
+              <div className="flex-1 overflow-y-auto pr-2">
+                {conversation.map((message, index) => (
+                  <div 
+                    key={index} 
+                    className={`mb-4 flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div 
+                      className={`max-w-[80%] rounded-lg p-4 ${
+                        message.role === 'user' 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted'
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start mb-4">
+                    <div className="bg-muted rounded-lg p-4 flex items-center space-x-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Jarvis is thinking...</span>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+              
+              <div className="flex items-end space-x-2">
+                <Textarea 
+                  placeholder="Type your message..." 
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="flex-1 resize-none"
+                  rows={3}
+                />
+                <div className="flex flex-col space-y-2">
+                  <Button 
+                    size="icon" 
+                    onClick={toggleRecording}
+                    variant={isRecording ? "destructive" : "secondary"}
+                  >
+                    {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  </Button>
+                  <Button size="icon" onClick={handleSendMessage} disabled={!userInput.trim() || isLoading}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="video" className="flex-1 flex flex-col items-center justify-center p-6">
+              <div className="text-center space-y-4">
+                <Video className="h-16 w-16 mx-auto text-muted-foreground" />
+                <h3 className="text-xl font-medium">Video Interview Practice</h3>
+                <p className="text-muted-foreground max-w-md">
+                  Practice with video recording to improve your body language and delivery.
+                </p>
+                <Button>Start Video Practice</Button>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="resources" className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Common Questions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Tell me about yourself</li>
+                      <li>Why do you want this job?</li>
+                      <li>What are your strengths and weaknesses?</li>
+                      <li>Where do you see yourself in 5 years?</li>
+                      <li>Why should we hire you?</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">Interview Tips</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Research the company thoroughly</li>
+                      <li>Prepare STAR method responses</li>
+                      <li>Dress professionally</li>
+                      <li>Arrive 10-15 minutes early</li>
+                      <li>Prepare thoughtful questions</li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </Card>
+      </div>
+      
+      <div>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Practice Session</CardTitle>
+            <CardDescription>
+              Set up a mock interview session
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Interview Type</label>
+              <Select value={interviewType} onValueChange={setInterviewType}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select interview type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {INTERVIEW_TYPES.map(type => (
+                    <SelectItem key={type.id} value={type.id}>
+                      {type.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Difficulty Level</label>
+              <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTY_LEVELS.map(level => (
+                    <SelectItem key={level.id} value={level.id}>
+                      {level.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={startPracticeSession} className="w-full">
+              Start Practice Session
+            </Button>
+          </CardFooter>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Lightbulb className="h-5 w-5 mr-2 text-amber-500" />
+              Interview Tips
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h4 className="font-medium">Before the Interview</h4>
+              <p className="text-sm text-muted-foreground">
+                Research the company, prepare questions, and practice your responses to common questions.
+              </p>
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Jarvis</h1>
-              <p className="text-sm text-muted-foreground">Your AI Interview Coach</p>
+              <h4 className="font-medium">During the Interview</h4>
+              <p className="text-sm text-muted-foreground">
+                Maintain good eye contact, speak clearly, and use the STAR method for behavioral questions.
+              </p>
             </div>
-          </div>
-          
-          <div className="flex gap-2">
-            <Button 
-              variant={activeView === 'interview' ? 'default' : 'outline'} 
-              onClick={() => setActiveView('interview')}
-              size="sm"
-              className="shadow-sm"
-            >
-              <User className="h-4 w-4 mr-1" /> Interview Practice
-            </Button>
-            <Button 
-              variant={activeView === 'case-practice' ? 'default' : 'outline'} 
-              onClick={() => setActiveView('case-practice')}
-              size="sm"
-              className="shadow-sm"
-            >
-              <Briefcase className="h-4 w-4 mr-1" /> Case Practice
-            </Button>
-          </div>
-        </div>
-
-        {activeView === 'interview' ? (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            {/* Main interview area - 3/5 width on large screens */}
-            <div className="lg:col-span-3 space-y-6">
-              <Card className="border border-slate-200 shadow-sm overflow-hidden">
-                <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-4 text-white">
-                  <div className="flex justify-between items-center">
-                    <h2 className="font-semibold">Active Interview Session</h2>
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      <span className="text-xs font-medium">12:45</span>
-                    </div>
-                  </div>
-                </div>
-
-                <CardContent className="p-6 space-y-6">
-                  <div className="mb-6">
-                    <h3 className="font-medium mb-2">Current Question:</h3>
-                    <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                      <p>{selectedQuestion?.text || "Describe a time when you had to work with a difficult team member. How did you handle it?"}</p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center mb-1">
-                      <h3 className="font-medium">Your Response:</h3>
-                      <Badge variant={isRecording ? "destructive" : "outline"} className="animate-pulse">
-                        {isRecording ? "Recording..." : "Ready"}
-                      </Badge>
-                    </div>
-
-                    <Textarea 
-                      value={transcript} 
-                      onChange={(e) => resetTranscript(e.target.value)}
-                      placeholder="Your answer will appear here as you speak..."
-                      className={`min-h-[120px] ${isRecording ? 'border-red-500' : ''}`}
-                    />
-
-                    <div className="flex justify-center mt-4">
-                      <div className="flex gap-3">
-                        <Button
-                          variant={isRecording ? "destructive" : "default"}
-                          size="lg"
-                          className="rounded-full h-16 w-16 flex items-center justify-center shadow-md"
-                          onClick={isRecording ? handleStopRecording : handleStartRecording}
-                        >
-                          {isRecording ? (
-                            <MicOff className="h-6 w-6" />
-                          ) : (
-                            <Mic className="h-6 w-6" />
-                          )}
-                        </Button>
-                        
-                        <Button
-                          variant="outline"
-                          size="lg"
-                          className="rounded-full h-16 w-16 flex items-center justify-center border-dashed"
-                          onClick={handleAnalyzeResponse}
-                          disabled={!transcript.trim() || isRecording}
-                        >
-                          <Brain className="h-6 w-6" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Feedback display area */}
-              {(feedback || aiResponse) && (
-                <div className="space-y-2">
-                  <h3 className="font-medium ml-1">Jarvis Feedback:</h3>
-                  
-                  {showAITyping ? (
-                    <Card className="border border-slate-200 shadow-sm">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-center flex-shrink-0 mt-1">
-                            <Sparkles className="h-4 w-4 text-white" />
-                          </div>
-                          <div className="space-y-2 flex-1">
-                            <p>{aiResponse}</p>
-                            <div className="flex gap-1">
-                              <span className="h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
-                              <span className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse delay-150"></span>
-                              <span className="h-2 w-2 rounded-full bg-indigo-300 animate-pulse delay-300"></span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <FeedbackDisplay 
-                      feedback={feedback} 
-                      detailedFeedback={detailedFeedback} 
-                    />
-                  )}
-                </div>
-              )}
+            <div>
+              <h4 className="font-medium">After the Interview</h4>
+              <p className="text-sm text-muted-foreground">
+                Send a thank-you note within 24 hours and follow up if you don't hear back within a week.
+              </p>
             </div>
-
-            {/* Sidebar - 2/5 width on large screens */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card className="border border-slate-200 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Interview Settings</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Tabs defaultValue="prepare">
-                    <TabsList className="grid grid-cols-3 mb-4">
-                      <TabsTrigger value="prepare">Prepare</TabsTrigger>
-                      <TabsTrigger value="practice">Practice</TabsTrigger>
-                      <TabsTrigger value="analyze">Review</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="prepare">
-                      <div className="space-y-3">
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Career Track</label>
-                          <div className="grid grid-cols-2 gap-2">
-                            {['general', 'tech', 'consulting', 'investment-banking'].map((track) => (
-                              <Button
-                                key={track}
-                                variant={careerTrack === track ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setCareerTrack(track as CareerTrack)}
-                                className="justify-start"
-                              >
-                                <span className="capitalize">{track.replace('-', ' ')}</span>
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">Interview Type</label>
-                          <div className="grid grid-cols-1 gap-2">
-                            {['behavioral', 'technical', 'case', 'general'].map((type) => (
-                              <Button
-                                key={type}
-                                variant={interviewType === type ? "default" : "outline"}
-                                size="sm"
-                                onClick={() => setInterviewType(type as any)}
-                                className="justify-start"
-                              >
-                                <span className="capitalize">{type}</span>
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="practice">
-                      <div className="space-y-3">
-                        <div className="bg-slate-50 p-3 rounded-md border border-slate-200">
-                          <h4 className="text-sm font-medium mb-2">Active Session</h4>
-                          <div className="flex justify-between">
-                            <div className="text-xs text-muted-foreground">Question Count</div>
-                            <div className="text-xs font-medium">1 of 5</div>
-                          </div>
-                          <div className="flex justify-between">
-                            <div className="text-xs text-muted-foreground">Time Elapsed</div>
-                            <div className="text-xs font-medium">12:45</div>
-                          </div>
-                        </div>
-                        
-                        <Button 
-                          className="w-full" 
-                          variant={isPracticing ? "outline" : "default"}
-                          onClick={isPracticing ? stopPractice : startPractice}
-                        >
-                          {isPracticing ? (
-                            <>
-                              <Pause className="mr-2 h-4 w-4" /> End Session
-                            </>
-                          ) : (
-                            <>
-                              <Play className="mr-2 h-4 w-4" /> Start Session
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </TabsContent>
-                    
-                    <TabsContent value="analyze">
-                      <div className="space-y-3">
-                        <div className="bg-slate-50 p-3 rounded-md border border-slate-200 flex justify-between items-center">
-                          <div>
-                            <h4 className="text-sm font-medium">Performance Score</h4>
-                            <div className="text-2xl font-bold text-indigo-600">85/100</div>
-                          </div>
-                          <BarChart className="h-10 w-10 text-indigo-400" />
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-medium">Recent Sessions</h4>
-                          <div className="grid grid-cols-1 gap-2">
-                            {[
-                              {date: "May 15", type: "Behavioral", score: 85},
-                              {date: "May 14", type: "Technical", score: 78},
-                              {date: "May 12", type: "Case Study", score: 92},
-                            ].map((session, i) => (
-                              <div key={i} className="flex justify-between items-center p-2 border rounded-md text-sm">
-                                <div>
-                                  <div>{session.date}</div>
-                                  <div className="text-xs text-muted-foreground">{session.type}</div>
-                                </div>
-                                <Badge variant={session.score > 80 ? "default" : "secondary"}>
-                                  {session.score}/100
-                                </Badge>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-slate-200 shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Tips & Resources</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-2">
-                      <Award className="h-5 w-5 text-indigo-500 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-medium">Structure your answers with the STAR method</h4>
-                        <p className="text-xs text-muted-foreground">Situation, Task, Action, Result</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2">
-                      <Award className="h-5 w-5 text-indigo-500 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-medium">Quantify your achievements</h4>
-                        <p className="text-xs text-muted-foreground">Use numbers to add credibility</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-start gap-2">
-                      <Award className="h-5 w-5 text-indigo-500 mt-0.5" />
-                      <div>
-                        <h4 className="text-sm font-medium">Ask clarifying questions</h4>
-                        <p className="text-xs text-muted-foreground">Ensure you understand what's being asked</p>
-                      </div>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <Button variant="outline" className="w-full" size="sm">
-                      <MessageSquare className="h-4 w-4 mr-2" /> All Interview Tips
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        ) : (
-          <CasePractice />
-        )}
-        
-        {/* Footer */}
-        <div className="flex justify-between items-center mt-8 text-sm text-muted-foreground">
-          <div>
-            <span>© 2023 Jarvis AI | Your AI-powered interview coach</span>
-          </div>
-          <div className="flex gap-6">
-            <Button variant="link" size="sm" className="text-muted-foreground p-0 h-auto">Help</Button>
-            <Button variant="link" size="sm" className="text-muted-foreground p-0 h-auto">Privacy</Button>
-            <Button variant="link" size="sm" className="text-muted-foreground p-0 h-auto">Terms</Button>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-}
+};

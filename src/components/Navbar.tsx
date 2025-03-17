@@ -3,11 +3,10 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { NavLinks } from "@/components/NavLinks";
 import { Zap } from "lucide-react";
-import { useContext } from "react";
-import { AuthContext } from "@/App";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function Navbar() {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
 
   // Show all navigation items regardless of auth status
   const navItems = [
