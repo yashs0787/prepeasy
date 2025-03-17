@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { InterviewAssistant } from '@/components/interview/InterviewAssistant';
 import { Calendar, Clock, Award, BookOpen, CheckCircle, ArrowRight } from 'lucide-react';
-import { useAuth } from '@/App';
+import { useAuth } from '@/contexts/AuthContext'; // Fixed import
 import { toast } from 'sonner';
 
 export function InterviewTab() {

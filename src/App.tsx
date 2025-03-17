@@ -18,6 +18,9 @@ import JarvisPage from './pages/JarvisPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
 
+// Re-export the useAuth hook from AuthContext so that it can be imported from @/App
+export { useAuth } from './contexts/AuthContext';
+
 function App() {
   return (
     <AuthProvider>
