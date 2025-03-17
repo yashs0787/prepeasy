@@ -44,7 +44,7 @@ export const FloatingCTA: React.FC<FloatingCTAProps> = ({ scrollY, scrollToSecti
         <div className="flex space-x-3">
           <Button 
             className="w-full neon-button"
-            onClick={() => scrollToSection('top')}
+            onClick={() => scrollToSection('get-started')}
           >
             Get Started
           </Button>
@@ -52,4 +52,4 @@ export const FloatingCTA: React.FC<FloatingCTAProps> = ({ scrollY, scrollToSecti
       </div>
     </div>
   );
-};
+}

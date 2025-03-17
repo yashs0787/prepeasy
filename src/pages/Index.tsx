@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/home/HeroSection';
 import { ProblemSection } from '@/components/home/ProblemSection';
@@ -10,10 +11,13 @@ import { DemoSection } from '@/components/home/DemoSection';
 import { TestimonialSection } from '@/components/home/TestimonialSection';
 import { FooterSection } from '@/components/home/FooterSection';
 import { FloatingCTA } from '@/components/home/FloatingCTA';
+import { useAuth } from '@/App';
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
+  const navigate = useNavigate();
+  const { user } = useAuth();
   
   // Track scroll position for animations
   useEffect(() => {
@@ -26,6 +30,15 @@ export default function Index() {
   }, []);
   
   const scrollToSection = (section: string) => {
+    if (section === 'get-started') {
+      if (user) {
+        navigate('/dashboard');
+      } else {
+        navigate('/signin?tab=signup');
+      }
+      return;
+    }
+    
     setActiveSection(section);
     const element = document.getElementById(section);
     if (element) {
