@@ -11,13 +11,15 @@ import { DemoSection } from '@/components/home/DemoSection';
 import { TestimonialSection } from '@/components/home/TestimonialSection';
 import { FooterSection } from '@/components/home/FooterSection';
 import { FloatingCTA } from '@/components/home/FloatingCTA';
-import { useAuth } from '@/App';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Index() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
   const { user } = useAuth();
+  
+  console.log('Index page rendered');
   
   // Track scroll position for animations
   useEffect(() => {
