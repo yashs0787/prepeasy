@@ -5,6 +5,7 @@ import { CareerTrack, InterviewQuestion, InterviewType } from './types/interview
 import { getQuestionsForTrack } from './utils/questionData';
 import { useFeedbackGenerator } from './hooks/useFeedbackGenerator';
 import { useRecordingManager } from './hooks/useRecordingManager';
+import { useVectorQuestionSearch } from './hooks/useVectorQuestionSearch';
 
 export {
   type InterviewType,
@@ -38,6 +39,13 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
     startRecording,
     stopRecording
   } = useRecordingManager();
+  
+  const {
+    isSearching,
+    results: searchResults,
+    searchQuestions,
+    getSimilarQuestions
+  } = useVectorQuestionSearch();
 
   const filteredQuestions = useCallback(() => {
     const allQuestions = getQuestionsForTrack(careerTrack);
@@ -106,6 +114,11 @@ export function useInterviewAssistant(initialCareerTrack: CareerTrack = 'general
     startPractice,
     stopPractice,
     handleSelectQuestion,
-    handleQuestionSubmit
+    handleQuestionSubmit,
+    // Vector search features
+    isSearching,
+    searchResults,
+    searchQuestions,
+    getSimilarQuestions
   };
 }

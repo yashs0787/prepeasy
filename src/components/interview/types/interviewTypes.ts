@@ -11,6 +11,7 @@ export interface InterviewQuestion {
   category?: string;
   sampleAnswer?: string;
   tips?: string[];
+  embedding?: number[]; // Add support for vector embeddings
 }
 
 export interface LearningResource {
@@ -27,4 +28,16 @@ export interface FeedbackResult {
   scoreBreakdown?: Record<string, number>;
   learningResources?: LearningResource[];
   nextSteps?: string;
+}
+
+export interface VectorSearchParams {
+  query: string;
+  careerTrack?: CareerTrack;
+  type?: InterviewType;
+  limit?: number;
+}
+
+export interface VectorSearchResult {
+  question: InterviewQuestion;
+  similarity: number;
 }
