@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -71,6 +70,8 @@ export default function SignIn() {
     try {
       await signUp(formData.email, formData.password, formData.name);
       toast.success("Account created successfully!");
+      // Redirect to dashboard - authentication state will be handled by the auth context
+      navigate("/dashboard");
     } catch (error: any) {
       toast.error(error.message);
     }

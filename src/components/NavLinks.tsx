@@ -9,7 +9,6 @@ const linkClasses =
 export function NavLinks() {
   const { user } = useAuth();
   
-  // Only show Jarvis if the user is authenticated
   return (
     <div className="flex gap-6">
       <NavLink to="/jobs" className={linkClasses}>
@@ -19,13 +18,18 @@ export function NavLinks() {
         Resume Builder
       </NavLink>
       {user && (
-        <NavLink to="/jarvis" className={linkClasses}>
-          <div className="flex items-center gap-1">
-            <Sparkles className="h-4 w-4 text-amber-400" />
-            Jarvis AI
-            <span className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs px-1.5 py-0.5 rounded-full font-medium ml-1">AI</span>
-          </div>
-        </NavLink>
+        <>
+          <NavLink to="/dashboard" className={linkClasses}>
+            Dashboard
+          </NavLink>
+          <NavLink to="/jarvis" className={linkClasses}>
+            <div className="flex items-center gap-1">
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              Jarvis AI
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs px-1.5 py-0.5 rounded-full font-medium ml-1">AI</span>
+            </div>
+          </NavLink>
+        </>
       )}
     </div>
   );

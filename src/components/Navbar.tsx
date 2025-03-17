@@ -12,8 +12,7 @@ export function Navbar() {
   const navItems = [
     { path: "/", label: "Home" },
     { path: "/jobs", label: "Jobs" },
-    { path: "/resume-builder", label: "Resume Builder" },
-    { path: "/dashboard", label: "Dashboard" }
+    { path: "/resume-builder", label: "Resume Builder" }
   ];
 
   return (
@@ -40,11 +39,20 @@ export function Navbar() {
         
         <div className="flex items-center gap-4">
           {user ? (
-            <Link to="/dashboard">
-              <Button variant="ghost" className="hidden md:inline-flex hover:text-neon-purple hover:bg-neon-purple/10">
-                Dashboard
-              </Button>
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link to="/dashboard">
+                <Button variant="ghost" className="hidden md:inline-flex hover:text-neon-purple hover:bg-neon-purple/10">
+                  Dashboard
+                </Button>
+              </Link>
+              {user && (
+                <Link to="/jarvis">
+                  <Button variant="outline" className="hidden md:inline-flex hover:text-neon-purple hover:bg-neon-purple/10">
+                    Jarvis AI
+                  </Button>
+                </Link>
+              )}
+            </div>
           ) : (
             <>
               <Link to="/sign-in">
@@ -52,7 +60,7 @@ export function Navbar() {
                   Sign In
                 </Button>
               </Link>
-              <Link to="/sign-in?tab=signup">
+              <Link to="/sign-up">
                 <Button className="hidden md:inline-flex neon-button">
                   Sign Up
                 </Button>

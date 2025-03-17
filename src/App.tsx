@@ -16,6 +16,7 @@ import NotFound from "./pages/NotFound";
 import JarvisPage from './pages/JarvisPage';
 import { AuthProvider } from './contexts/AuthContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 // Re-export the useAuth hook from AuthContext so that it can be imported from @/App
 export { useAuth } from './contexts/AuthContext';
@@ -31,9 +32,21 @@ function App() {
           <Route path="/resume-builder" element={<ResumeBuilder />} />
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/jarvis" element={<JarvisPage />} />
+          <Route path="/onboarding" element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          } />
+          <Route path="/dashboard" element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/jarvis" element={
+            <ProtectedRoute>
+              <JarvisPage />
+            </ProtectedRoute>
+          } />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

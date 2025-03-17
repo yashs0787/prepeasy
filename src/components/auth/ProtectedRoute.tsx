@@ -1,7 +1,7 @@
 
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { auth } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { LoaderCircle } from "lucide-react";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -13,9 +13,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const checkAuth = async () => {
       try {
         setIsLoading(true);
-        const { data } = await auth.getCurrentUser();
-        setIsAuthenticated(!!data.user);
+        const { data } = await supabase.auth.getSession();
+        setIsAuthenticated(!!data.session);
       } catch (error) {
+        console.error("Authentication check failed:", error);
         setIsAuthenticated(false);
       } finally {
         setIsLoading(false);
@@ -23,6 +24,18 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     };
     
     checkAuth();
+
+    // Set up auth listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setIsAuthenticated(!!session);
+        setIsLoading(false);
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   if (isLoading) {
