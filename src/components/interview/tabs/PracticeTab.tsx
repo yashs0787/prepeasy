@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { QuestionLibrary } from '../QuestionLibrary';
 import { TranscriptAnalysis } from '../TranscriptAnalysis';
 import { FeedbackDisplay } from '../FeedbackDisplay';
 import { useSpeechToText } from '../hooks/useSpeechToText';
+import { useInterviewAssistant } from '../useInterviewAssistant';
 
 interface PracticeTabProps {
   interviewType: InterviewType;
@@ -31,6 +33,31 @@ export function PracticeTab({
   const [isAnalyzed, setIsAnalyzed] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<string>("");
+  
+  // Sample questions for demonstration
+  const [questions, setQuestions] = useState<InterviewQuestion[]>([
+    {
+      id: '1',
+      text: 'Tell me about yourself',
+      type: 'general',
+      difficulty: 'basic',
+      careerTrack: 'general'
+    },
+    {
+      id: '2',
+      text: 'What is your greatest strength?',
+      type: 'behavioral',
+      difficulty: 'basic',
+      careerTrack: 'general'
+    },
+    {
+      id: '3',
+      text: 'Tell me about a time you faced a challenge at work',
+      type: 'behavioral',
+      difficulty: 'intermediate',
+      careerTrack: 'general'
+    }
+  ]);
   
   const {
     isListening,
@@ -102,6 +129,9 @@ export function PracticeTab({
           <CardContent>
             <QuestionLibrary 
               onSelectQuestion={handleSelectQuestion} 
+              questions={questions}
+              selectedQuestion={selectedQuestion}
+              learningResources={[]}
             />
           </CardContent>
         </Card>
