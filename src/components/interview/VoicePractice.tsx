@@ -1,0 +1,85 @@
+
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Mic, Pause, Play } from 'lucide-react';
+import { InterviewQuestion, InterviewType } from './useInterviewAssistant';
+
+interface VoicePracticeProps {
+  interviewType: InterviewType;
+  setInterviewType: (type: InterviewType) => void;
+  isPracticing: boolean;
+  isRecording: boolean;
+  startPractice: () => void;
+  stopPractice: () => void;
+  startRecording: () => void;
+  stopRecording: () => void;
+  selectedQuestion: InterviewQuestion | null;
+}
+
+export function VoicePractice({
+  interviewType,
+  setInterviewType,
+  isPracticing,
+  isRecording,
+  startPractice,
+  stopPractice,
+  startRecording,
+  stopRecording,
+  selectedQuestion
+}: VoicePracticeProps) {
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4">
+        <div className="flex flex-col">
+          <label className="text-sm font-medium mb-1">Interview Type</label>
+          <Select value={interviewType} onValueChange={(value) => setInterviewType(value as InterviewType)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select interview type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="technical">Technical Interview</SelectItem>
+              <SelectItem value="behavioral">Behavioral Interview</SelectItem>
+              <SelectItem value="case">Case Study Interview</SelectItem>
+              <SelectItem value="financial">Financial Interview</SelectItem>
+              <SelectItem value="general">General Interview</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="bg-muted p-4 rounded-lg">
+          <h3 className="font-medium mb-2">Current Question:</h3>
+          <p className="mb-4">{
+            isPracticing && selectedQuestion
+              ? selectedQuestion.text
+              : "Start a practice session to get interview questions"
+          }</p>
+          
+          {!isPracticing ? (
+            <Button onClick={startPractice} className="w-full">
+              <Play className="mr-2 h-4 w-4" /> Start Practice Session
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex justify-center">
+                <Button
+                  size="lg"
+                  className={`rounded-full h-16 w-16 ${isRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                  onClick={isRecording ? stopRecording : startRecording}
+                >
+                  <Mic className="h-6 w-6" />
+                </Button>
+              </div>
+              <div className="text-center text-sm">
+                {isRecording ? 'Recording... Click to stop' : 'Click to record your answer'}
+              </div>
+              <Button variant="outline" onClick={stopPractice} className="w-full">
+                <Pause className="mr-2 h-4 w-4" /> End Practice Session
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
