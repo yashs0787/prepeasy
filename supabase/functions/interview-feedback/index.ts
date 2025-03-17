@@ -1,0 +1,188 @@
+
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY');
+const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { transcript, question, careerTrack, interviewType } = await req.json();
+    
+    if (!transcript || !question) {
+      throw new Error('Missing required parameters: transcript and question are required');
+    }
+
+    // Create system prompt based on career track and interview type
+    let systemPrompt = `You are an expert interview coach specializing in ${careerTrack || 'general'} careers`;
+    if (interviewType) {
+      systemPrompt += ` and ${interviewType} interviews`;
+    }
+    systemPrompt += `. Analyze the candidate's answer to the following interview question and provide detailed, constructive feedback.`;
+
+    // Format the content for Claude
+    const content = `
+${systemPrompt}
+
+The question asked was: "${question}"
+
+The candidate's response was: "${transcript}"
+
+Please provide a comprehensive analysis with the following structure:
+1. Overall assessment (score out of 100)
+2. Key strengths (3-5 bullet points)
+3. Areas for improvement (3-5 bullet points)
+4. Example of a stronger response
+5. Score breakdown by category (content relevance, structure, specificity, professionalism)
+6. Suggested learning resources
+7. Next steps for improvement
+`;
+
+    // Call Claude API
+    const response = await fetch(CLAUDE_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': CLAUDE_API_KEY,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: "claude-3-haiku-20240307",
+        max_tokens: 2000,
+        messages: [
+          {
+            role: "user",
+            content: content
+          }
+        ]
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Claude API error: ${errorData.error?.message || response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Extract and structure the feedback
+    const rawFeedback = data.content[0].text;
+    
+    // Parse the raw feedback into structured feedback
+    // This is a simplified version - in production, you'd want more robust parsing
+    const structuredFeedback = parseClaudeFeedback(rawFeedback);
+
+    return new Response(JSON.stringify({
+      success: true,
+      feedback: structuredFeedback,
+      rawFeedback
+    }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error in interview-feedback function:', error);
+    return new Response(JSON.stringify({ 
+      success: false, 
+      error: error.message 
+    }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+});
+
+// Helper function to parse Claude's feedback into a structured format
+function parseClaudeFeedback(text) {
+  try {
+    let score = 0;
+    const strengths = [];
+    const improvements = [];
+    let example = "";
+    let scoreBreakdown = {};
+    let nextSteps = "";
+    
+    // Extract overall score
+    const scoreMatch = text.match(/(\d+)(?:\s*\/\s*100|\s*out of\s*100)/i);
+    if (scoreMatch) {
+      score = parseInt(scoreMatch[1], 10);
+    }
+    
+    // Extract strengths
+    const strengthsSection = text.match(/strengths?:?(.*?)(?:areas?|improvements?|example|score breakdown|suggested|next steps)/is);
+    if (strengthsSection) {
+      const strengthsList = strengthsSection[1].trim().split(/\n+/);
+      for (const item of strengthsList) {
+        const cleanItem = item.replace(/^[-•*]\s*/, '').trim();
+        if (cleanItem) strengths.push(cleanItem);
+      }
+    }
+    
+    // Extract areas for improvement
+    const improvementsSection = text.match(/(?:areas?|improvements?):?(.*?)(?:example|score breakdown|suggested|next steps)/is);
+    if (improvementsSection) {
+      const improvementsList = improvementsSection[1].trim().split(/\n+/);
+      for (const item of improvementsList) {
+        const cleanItem = item.replace(/^[-•*]\s*/, '').trim();
+        if (cleanItem) improvements.push(cleanItem);
+      }
+    }
+    
+    // Extract example response
+    const exampleSection = text.match(/example(?:\s+of\s+a\s+stronger\s+response)?:?(.*?)(?:score breakdown|suggested|next steps)/is);
+    if (exampleSection) {
+      example = exampleSection[1].trim();
+    }
+    
+    // Extract score breakdown
+    const breakdownSection = text.match(/score breakdown:?(.*?)(?:suggested|next steps)/is);
+    if (breakdownSection) {
+      const breakdownText = breakdownSection[1];
+      const categories = breakdownText.match(/([A-Za-z\s]+):\s*(\d+)(?:\s*\/\s*100)?/g) || [];
+      
+      for (const category of categories) {
+        const [name, scoreStr] = category.split(':').map(s => s.trim());
+        if (name && scoreStr) {
+          const categoryScore = parseInt(scoreStr.replace(/\/\s*100/, ''), 10);
+          if (!isNaN(categoryScore)) {
+            scoreBreakdown[name] = categoryScore;
+          }
+        }
+      }
+    }
+    
+    // Extract next steps
+    const nextStepsSection = text.match(/next steps(?:\s+for\s+improvement)?:?(.*?)(?:$)/is);
+    if (nextStepsSection) {
+      nextSteps = nextStepsSection[1].trim();
+    }
+    
+    return {
+      score,
+      strengths,
+      improvements,
+      example,
+      scoreBreakdown,
+      nextSteps
+    };
+  } catch (error) {
+    console.error("Error parsing Claude feedback:", error);
+    return {
+      score: 0,
+      strengths: ["[Parsing error: Could not extract strengths]"],
+      improvements: ["[Parsing error: Could not extract areas for improvement]"],
+      example: "[Parsing error: Could not extract example response]",
+      scoreBreakdown: {},
+      nextSteps: "[Parsing error: Could not extract next steps]"
+    };
+  }
+}

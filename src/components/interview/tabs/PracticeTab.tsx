@@ -1,162 +1,165 @@
-import React, { useState } from 'react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import React, { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Play, Pause } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Mic, MicOff, RotateCw } from 'lucide-react';
 import { toast } from 'sonner';
-import { useSpeechRecognition } from '../useSpeechRecognition';
+import { InterviewQuestion, InterviewType } from '../types/interviewTypes';
+import { QuestionLibrary } from '../QuestionLibrary';
 import { TranscriptAnalysis } from '../TranscriptAnalysis';
 import { FeedbackDisplay } from '../FeedbackDisplay';
-import { useInterviewAssistant, InterviewType, CareerTrack } from '../useInterviewAssistant';
+import { useSpeechToText } from '../hooks/useSpeechToText';
 
 interface PracticeTabProps {
   interviewType: InterviewType;
-  setInterviewType: (value: string) => void;
+  setInterviewType: (type: InterviewType) => void;
   isPracticing: boolean;
   profile?: any;
 }
 
-export function PracticeTab({ 
-  interviewType, 
+export function PracticeTab({
+  interviewType,
   setInterviewType,
   isPracticing,
-  profile 
+  profile
 }: PracticeTabProps) {
+  const [selectedQuestion, setSelectedQuestion] = useState<InterviewQuestion | null>(null);
+  const [transcript, setTranscript] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [feedback, setFeedback] = useState<string | null>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<string>("");
   
   const {
-    selectedQuestion,
-    detailedFeedback,
-    startPractice,
-    stopPractice
-  } = useInterviewAssistant(profile?.careerPath ? mapProfileToCareerTrack(profile.careerPath) : 'general');
-
-  const {
-    transcript,
-    isSupported,
-    startRecording: startSpeechRecognition,
-    stopRecording: stopSpeechRecognition,
-    isRecording: isSpeechRecording,
-    resetTranscript
-  } = useSpeechRecognition();
-
-  function mapProfileToCareerTrack(careerPath: string): CareerTrack {
-    if (!careerPath) return 'general';
-    
-    switch (careerPath) {
-      case 'consulting':
-      case 'management_consulting': 
-        return 'consulting';
-      case 'investment_banking': 
-        return 'investment-banking';
-      case 'tech':
-      case 'technology': 
-        return 'tech';
-      default: 
-        return 'general';
-    }
-  }
-
-  const toggleRecording = () => {
-    if (isSpeechRecording) {
-      stopSpeechRecognition();
-    } else {
-      startSpeechRecognition();
-    }
-  };
-
-  const handleAnalyze = () => {
-    if (!transcript.trim()) return;
-    
-    setIsAnalyzing(true);
-    toast.info("Analyzing your response...");
-    
-    setTimeout(() => {
-      setIsAnalyzed(true);
-      setIsAnalyzing(false);
-      toast.success("Analysis complete!");
-    }, 2000);
-  };
-
-  const handleStartNewSession = () => {
-    resetTranscript();
+    isListening,
+    startListening,
+    stopListening,
+    resetTranscript,
+    setText
+  } = useSpeechToText();
+  
+  const handleSelectQuestion = (question: InterviewQuestion) => {
+    setSelectedQuestion(question);
+    setCurrentQuestion(question.text);
+    setTranscript('');
+    setFeedback(null);
     setIsAnalyzed(false);
-    startPractice();
   };
+  
+  const handleRecord = () => {
+    if (isListening) {
+      stopListening();
+      setText(transcript);
+    } else {
+      startListening();
+      setTranscript('');
+      resetTranscript();
+    }
+  };
+
+  const handleAnalyzeResponse = useCallback(async () => {
+    setIsAnalyzing(true);
+    setIsAnalyzed(false);
+    
+    // Simulate analysis
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    setIsAnalyzing(false);
+    setIsAnalyzed(true);
+    setFeedback("Great answer! You clearly articulated your strengths and provided specific examples.");
+    
+    toast.success("Response analyzed");
+  }, []);
   
   return (
     <div className="space-y-4">
-      <div className="grid gap-4">
-        <div className="flex flex-col">
-          <label className="text-sm font-medium mb-1">Interview Type</label>
-          <Select value={interviewType} onValueChange={setInterviewType}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select interview type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="technical">Technical Interview</SelectItem>
-              <SelectItem value="behavioral">Behavioral Interview</SelectItem>
-              <SelectItem value="case">Case Study Interview</SelectItem>
-              <SelectItem value="financial">Financial Interview</SelectItem>
-              <SelectItem value="general">General Interview</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="bg-muted p-4 rounded-lg">
-          <h3 className="font-medium mb-2">Current Question:</h3>
-          <p className="mb-4">{
-            selectedQuestion 
-              ? selectedQuestion.text
-              : isPracticing 
-                ? "Describe a challenging project you worked on and how you overcame obstacles to deliver it successfully."
-                : "Start a practice session to get interview questions"
-          }</p>
-          
-          {!isPracticing ? (
-            <Button onClick={handleStartNewSession} className="w-full">
-              <Play className="mr-2 h-4 w-4" /> Start Practice Session
-            </Button>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex justify-center">
-                <Button
-                  size="lg"
-                  className={`rounded-full h-16 w-16 ${isSpeechRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
-                  onClick={toggleRecording}
-                  disabled={!isSupported}
-                >
-                  <span className="sr-only">
-                    {isSpeechRecording ? 'Stop Recording' : 'Start Recording'}
-                  </span>
-                </Button>
-              </div>
-              <div className="text-center text-sm">
-                {isSpeechRecording ? 'Recording... Click to stop' : 'Click to record your answer'}
-              </div>
-              
-              <TranscriptAnalysis
-                transcript={transcript}
-                onTranscriptChange={resetTranscript}
-                onAnalyze={handleAnalyze}
-                isAnalyzing={isAnalyzing}
-                isAnalyzed={isAnalyzed}
-              />
-              
-              <Button variant="outline" onClick={stopPractice} className="w-full mt-4">
-                <Pause className="mr-2 h-4 w-4" /> End Practice Session
-              </Button>
-            </div>
-          )}
-        </div>
+      <div className="space-y-2">
+        <Label htmlFor="interview-type" className="text-sm font-medium">
+          Interview Type
+        </Label>
+        <Select value={interviewType} onValueChange={(value) => setInterviewType(value as InterviewType)}>
+          <SelectTrigger id="interview-type" className="w-full">
+            <SelectValue placeholder="Select interview type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="general">General</SelectItem>
+            <SelectItem value="technical">Technical</SelectItem>
+            <SelectItem value="behavioral">Behavioral</SelectItem>
+            <SelectItem value="case">Case Study</SelectItem>
+            <SelectItem value="financial">Financial</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
       
-      {isAnalyzed && detailedFeedback && (
-        <FeedbackDisplay 
-          feedback="Your response has been analyzed."
-          detailedFeedback={detailedFeedback}
-        />
-      )}
+      <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Question</CardTitle>
+            <CardDescription>Select a question to practice</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <QuestionLibrary 
+              onSelectQuestion={handleSelectQuestion} 
+            />
+          </CardContent>
+        </Card>
+        
+        {isPracticing && selectedQuestion && (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Practice</CardTitle>
+                <CardDescription>Record your answer</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="question">Question</Label>
+                  <Input 
+                    id="question" 
+                    value={selectedQuestion.text} 
+                    readOnly 
+                  />
+                </div>
+                
+                <Button 
+                  className="w-full" 
+                  onClick={handleRecord}
+                  disabled={isAnalyzing}
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff className="h-4 w-4 mr-2" />
+                      Stop Recording
+                    </>
+                  ) : (
+                    <>
+                      <Mic className="h-4 w-4 mr-2" />
+                      Start Recording
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+            
+            <TranscriptAnalysis 
+              transcript={transcript}
+              onTranscriptChange={setTranscript}
+              onAnalyze={handleAnalyzeResponse}
+              isAnalyzing={isAnalyzing}
+              isAnalyzed={isAnalyzed}
+              currentQuestion={currentQuestion}
+              careerTrack={selectedQuestion.careerTrack}
+              interviewType={selectedQuestion.type}
+            />
+          </>
+        )}
+        
+        {isAnalyzed && feedback && (
+          <FeedbackDisplay feedback={feedback} />
+        )}
+      </div>
     </div>
   );
 }

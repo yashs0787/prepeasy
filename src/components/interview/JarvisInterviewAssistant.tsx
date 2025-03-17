@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Mic, MicOff, Send, Video, MessageSquare, BookOpen, Lightbulb } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 const INTERVIEW_TYPES = [
   { id: 'behavioral', name: 'Behavioral Interview' },
@@ -55,21 +56,44 @@ export const JarvisInterviewAssistant: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Simulate API call to get AI response
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.functions.invoke('interview-feedback', {
+        body: {
+          transcript: userInput,
+          question: "How can I help you prepare for interviews?",
+          careerTrack: interviewType === 'technical' ? 'tech' : 
+                       interviewType === 'case' ? 'consulting' : 'general',
+          interviewType: interviewType,
+          isChat: true,
+          difficultyLevel: difficultyLevel
+        }
+      });
+      
+      if (error) {
+        throw new Error(error.message);
+      }
       
       let response;
-      if (userInput.toLowerCase().includes('tell me about yourself')) {
-        response = "That's a common interview question! When answering 'Tell me about yourself', structure your response in 3 parts: 1) Present: Start with your current role and responsibilities, 2) Past: Briefly mention relevant experience that led you here, 3) Future: Express why you're excited about this opportunity. Keep it concise (60-90 seconds) and relevant to the job. Would you like to practice this response?";
-      } else if (userInput.toLowerCase().includes('weakness')) {
-        response = "When discussing weaknesses, choose something genuine but not critical to the job. Explain how you're actively working to improve it. For example: 'I used to struggle with public speaking, so I joined Toastmasters and have been volunteering to lead more team presentations.' Would you like more examples?";
+      if (data.rawFeedback) {
+        response = data.rawFeedback;
       } else {
-        response = "That's a great question to prepare for! Would you like me to provide some structure for your answer, give you example responses, or would you prefer to practice answering it first and I can provide feedback?";
+        if (userInput.toLowerCase().includes('tell me about yourself')) {
+          response = "That's a common interview question! When answering 'Tell me about yourself', structure your response in 3 parts: 1) Present: Start with your current role and responsibilities, 2) Past: Briefly mention relevant experience that led you here, 3) Future: Express why you're excited about this opportunity. Keep it concise (60-90 seconds) and relevant to the job. Would you like to practice this response?";
+        } else if (userInput.toLowerCase().includes('weakness')) {
+          response = "When discussing weaknesses, choose something genuine but not critical to the job. Explain how you're actively working to improve it. For example: 'I used to struggle with public speaking, so I joined Toastmasters and have been volunteering to lead more team presentations.' Would you like more examples?";
+        } else {
+          response = "That's a great question to prepare for! Would you like me to provide some structure for your answer, give you example responses, or would you prefer to practice answering it first and I can provide feedback?";
+        }
       }
       
       setConversation(prev => [...prev, { role: 'assistant', content: response }]);
     } catch (error) {
+      console.error("Error in handleSendMessage:", error);
       toast.error("Sorry, I couldn't process your request");
+      
+      setConversation(prev => [...prev, { 
+        role: 'assistant', 
+        content: "I'm sorry, I'm having trouble processing your request right now. Please try again in a moment." 
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -84,12 +108,10 @@ export const JarvisInterviewAssistant: React.FC = () => {
   
   const toggleRecording = () => {
     if (!isRecording) {
-      // Request microphone permission
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
           setIsRecording(true);
           toast.info("Voice recording started");
-          // In a real app, you would start recording here
         })
         .catch(err => {
           toast.error("Microphone access denied");
@@ -97,7 +119,6 @@ export const JarvisInterviewAssistant: React.FC = () => {
     } else {
       setIsRecording(false);
       toast.info("Voice recording stopped");
-      // In a real app, you would stop recording and process the audio here
     }
   };
   
