@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Zap, MessageSquare, FileText, Rocket, ChevronRight } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface SolutionSectionProps {
   scrollY: number;
@@ -9,95 +9,73 @@ interface SolutionSectionProps {
 }
 
 export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrollToSection }) => {
+  const solutions = [
+    "One-stop platform for finding and applying to jobs",
+    "AI-powered resume builder optimized for ATS systems",
+    "Smart job recommendations based on your skills",
+    "Automated application tracking and follow-ups",
+    "Interview preparation with industry-specific coaching"
+  ];
+
   return (
-    <section id="solution" className="py-24 relative overflow-hidden">
-      <div 
-        className="absolute top-1/2 left-1/2 w-1/2 h-96 bg-neon-purple/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
-        style={{
-          transform: `translate(-50%, -50%) scale(${1 + scrollY * 0.0005})`,
-          opacity: Math.min(0.8, 0.2 + scrollY * 0.0005)
-        }}
-      ></div>
-      
-      <div className="container mx-auto px-4 max-w-6xl relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">Our Solution</h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            ApplyGo automates job discovery and application to make the process one-click simple
-          </p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          <div 
-            className="space-y-6"
-            style={{
-              opacity: scrollY > 700 ? 1 : 0,
-              transform: scrollY > 700 ? 'translateX(0)' : 'translateX(-50px)',
-              transition: 'opacity 0.6s ease, transform 0.6s ease'
-            }}
-          >
-            <div className="space-y-6">
-              <div className="flex gap-4 items-start">
-                <div className="rounded-full w-10 h-10 flex items-center justify-center bg-neon-purple/20 border border-neon-purple/40 shrink-0 mt-1">
-                  <Zap className="h-5 w-5 text-neon-purple" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Centralized Job Discovery</h3>
-                  <p className="text-muted-foreground">Find opportunities from across platforms categorized by job type, experience level, and industry in one place.</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 items-start">
-                <div className="rounded-full w-10 h-10 flex items-center justify-center bg-neon-purple/20 border border-neon-purple/40 shrink-0 mt-1">
-                  <MessageSquare className="h-5 w-5 text-neon-purple" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Personalized Outreach</h3>
-                  <p className="text-muted-foreground">Automatically generate customized messages for hiring managers that showcase your relevant skills and experience.</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 items-start">
-                <div className="rounded-full w-10 h-10 flex items-center justify-center bg-neon-purple/20 border border-neon-purple/40 shrink-0 mt-1">
-                  <FileText className="h-5 w-5 text-neon-purple" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">One-Click Applications</h3>
-                  <p className="text-muted-foreground">Generate tailored resumes and apply to jobs with a single click, saving hours of repetitive work.</p>
-                </div>
-              </div>
-            </div>
-            
-            <Button 
-              className="neon-button mt-4" 
-              onClick={() => scrollToSection('features')}
+    <section id="solution" className="py-24">
+      <div className="container mx-auto px-4 max-w-6xl">
+        <div className="flex flex-col md:flex-row items-center gap-12">
+          <div className="md:w-1/2 order-2 md:order-1">
+            <div 
+              className="bg-gradient-to-r from-neon-purple/20 to-neon-blue/20 rounded-3xl p-8 relative"
               style={{
-                transform: scrollY > 800 ? 'scale(1)' : 'scale(0.9)',
-                transition: 'transform 0.3s ease',
-                transitionDelay: '0.3s'
+                opacity: scrollY > 600 ? 1 : 0,
+                transform: scrollY > 600 ? 'translateY(0)' : 'translateY(20px)',
+                transition: 'opacity 0.6s ease, transform 0.6s ease'
               }}
             >
-              Explore All Features <ChevronRight size={16} />
-            </Button>
+              <img 
+                src="/placeholder.svg" 
+                alt="ApplyGo solution showcase" 
+                className="rounded-lg shadow-lg border border-border w-full"
+              />
+            </div>
           </div>
           
-          <div 
-            className="relative"
-            style={{
-              opacity: scrollY > 700 ? 1 : 0,
-              transform: scrollY > 700 ? 'translateX(0)' : 'translateX(50px)',
-              transition: 'opacity 0.6s ease, transform 0.6s ease'
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/10 to-neon-blue/10 rounded-lg blur-xl"></div>
-            <div className="relative glass-card rounded-lg overflow-hidden border border-white/10 p-6">
-              <div className="aspect-video bg-black/40 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <Rocket className="h-12 w-12 text-neon-purple mx-auto mb-3" />
-                  <p className="text-lg font-medium">Modern Job Marketplace</p>
-                  <p className="text-sm text-muted-foreground">For the next generation of professionals</p>
-                </div>
-              </div>
+          <div className="md:w-1/2 order-1 md:order-2">
+            <div 
+              style={{
+                opacity: scrollY > 550 ? 1 : 0,
+                transform: scrollY > 550 ? 'translateY(0)' : 'translateY(20px)',
+                transition: 'opacity 0.6s ease, transform 0.6s ease'
+              }}
+            >
+              <h2 className="text-3xl md:text-4xl font-bold gradient-text mb-4">Our Solution</h2>
+              <p className="text-xl text-muted-foreground mb-8">
+                ApplyGo streamlines the entire job application process from start to finish
+              </p>
+              
+              <ul className="space-y-3 mb-8">
+                {solutions.map((solution, index) => (
+                  <li 
+                    key={index} 
+                    className="flex items-start"
+                    style={{
+                      opacity: scrollY > (550 + index * 30) ? 1 : 0,
+                      transform: scrollY > (550 + index * 30) ? 'translateY(0)' : 'translateY(10px)',
+                      transition: 'opacity 0.5s ease, transform 0.5s ease',
+                      transitionDelay: `${index * 0.1}s`
+                    }}
+                  >
+                    <Check className="h-5 w-5 text-neon-green mr-2 mt-1 flex-shrink-0" />
+                    <span>{solution}</span>
+                  </li>
+                ))}
+              </ul>
+              
+              <Button 
+                size="lg" 
+                className="neon-button"
+                onClick={() => scrollToSection('features')}
+              >
+                Explore Features
+              </Button>
             </div>
           </div>
         </div>
