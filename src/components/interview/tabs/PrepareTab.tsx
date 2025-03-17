@@ -1,16 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Send } from 'lucide-react';
 import { CareerTrackSelector } from '../CareerTrackSelector';
 import { QuestionLibrary } from '../QuestionLibrary';
 import { FeedbackDisplay } from '../FeedbackDisplay';
-import { CareerTrack, InterviewQuestion } from '../types/interviewTypes';
+import { CareerTrack, InterviewQuestion, InterviewType, LearningResource } from '../types/interviewTypes';
 import { useFeedbackGenerator } from '../hooks/useFeedbackGenerator';
 import { getQuestionsForTrack } from '../utils/questionData';
 import { useVectorQuestionSearch } from '../hooks/useVectorQuestionSearch';
+import { getLearningResources, getRecommendedPath } from '../utils/learningPathData';
 import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 
 interface PrepareTabProps {
   careerTrack: CareerTrack;
@@ -22,9 +25,13 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
   const [selectedQuestion, setSelectedQuestion] = useState<InterviewQuestion | null>(null);
   const [showingSearchResults, setShowingSearchResults] = useState(false);
   const [similarQuestions, setSimilarQuestions] = useState<InterviewQuestion[]>([]);
+  const [interviewType, setInterviewType] = useState<InterviewType>('general');
+  const [learningResources, setLearningResources] = useState<LearningResource[]>([]);
   
-  // Get filtered questions based on career track
-  const filteredQuestions = getQuestionsForTrack(careerTrack);
+  // Get filtered questions based on career track and interview type
+  const filteredQuestions = getQuestionsForTrack(careerTrack).filter(q => 
+    interviewType === 'general' || q.type === interviewType || q.careerTrack === 'general'
+  );
   
   const { 
     feedback, 
@@ -38,6 +45,21 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
     searchQuestions,
     getSimilarQuestions
   } = useVectorQuestionSearch();
+  
+  // Update learning resources when career track or interview type changes
+  useEffect(() => {
+    const resources = getLearningResources(careerTrack, interviewType);
+    setLearningResources(resources);
+    
+    // Show a toast with a learning path recommendation when career track changes
+    const recommendedPath = getRecommendedPath(careerTrack);
+    if (recommendedPath) {
+      toast.info(`Recommended: ${recommendedPath.title}`, {
+        description: recommendedPath.description,
+        duration: 5000,
+      });
+    }
+  }, [careerTrack, interviewType]);
   
   // Questions to display - either filtered by track or search results
   const displayQuestions = showingSearchResults 
@@ -81,6 +103,7 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
     await searchQuestions({ 
       query, 
       careerTrack,
+      type: interviewType === 'general' ? undefined : interviewType,
       limit: 10 
     });
     
@@ -91,6 +114,10 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
   const handleResetSearch = () => {
     setShowingSearchResults(false);
   };
+  
+  const handleInterviewTypeChange = (value: string) => {
+    setInterviewType(value as InterviewType);
+  };
 
   return (
     <div className="space-y-4">
@@ -100,12 +127,31 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
         onSelectTrack={setCareerTrack}
       />
       
-      {/* Question library */}
+      {/* Interview type selector */}
+      <div className="space-y-2">
+        <label htmlFor="interview-type" className="text-sm font-medium">
+          Interview Type
+        </label>
+        <Select value={interviewType} onValueChange={handleInterviewTypeChange}>
+          <SelectTrigger id="interview-type" className="w-full">
+            <SelectValue placeholder="Select interview type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="general">General</SelectItem>
+            <SelectItem value="technical">Technical</SelectItem>
+            <SelectItem value="behavioral">Behavioral</SelectItem>
+            <SelectItem value="case">Case Study</SelectItem>
+            <SelectItem value="financial">Financial</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Question library and learning resources */}
       <div className="space-y-4 mt-6">
         <div>
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-medium">
-              {showingSearchResults ? 'Search Results' : 'Question Library'}
+              {showingSearchResults ? 'Search Results' : 'Learning Center'}
             </h3>
             
             {showingSearchResults && (
@@ -117,7 +163,7 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
           <p className="text-sm text-muted-foreground mb-4">
             {showingSearchResults 
               ? 'Showing questions relevant to your search' 
-              : 'Browse common interview questions for your career track'}
+              : 'Browse questions and resources for your career track'}
           </p>
           
           <QuestionLibrary 
@@ -126,6 +172,7 @@ export function PrepareTab({ careerTrack, setCareerTrack }: PrepareTabProps) {
             onSelectQuestion={handleSelectQuestion}
             onSearch={handleSearch}
             isSearching={isSearching}
+            learningResources={learningResources}
           />
         </div>
         

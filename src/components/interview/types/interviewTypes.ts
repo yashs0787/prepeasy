@@ -18,6 +18,18 @@ export interface LearningResource {
   title: string;
   type: 'video' | 'article' | 'practice';
   url?: string;
+  description?: string;
+  duration?: string; // e.g. "10 min read", "15 min video"
+  difficulty: 'basic' | 'intermediate' | 'advanced';
+}
+
+export interface LearningPath {
+  id: string;
+  title: string;
+  description: string;
+  careerTrack: CareerTrack;
+  type: InterviewType;
+  resources: LearningResource[];
 }
 
 export interface FeedbackResult {
