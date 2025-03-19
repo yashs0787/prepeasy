@@ -21,7 +21,7 @@ export function HeroSection({ scrollY, scrollToSection }: HeroSectionProps) {
               Your Career <span className="text-primary">Success Partner</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl">
-              Create professional resumes, match with your dream jobs, and get AI-powered interview coaching with Jarvis to land your next role.
+              Create professional resumes, match with your dream jobs, and get AI-powered interview coaching with Friday to land your next role.
             </p>
             <div className="space-y-4 sm:space-y-0 sm:space-x-4 sm:flex">
               <Button 

@@ -33,7 +33,7 @@ export const JarvisInterviewAssistant: React.FC = () => {
   const [conversation, setConversation] = useState<Array<{role: string, content: string}>>([
     {
       role: 'assistant',
-      content: "Hello! I'm Jarvis, your AI interview coach. How can I help you prepare for your interviews today?"
+      content: "Hello! I'm Friday, your AI interview coach. How can I help you prepare for your interviews today?"
     }
   ]);
   
@@ -141,7 +141,7 @@ export const JarvisInterviewAssistant: React.FC = () => {
       <div className="lg:col-span-2">
         <Card className="h-full flex flex-col">
           <CardHeader>
-            <CardTitle>Jarvis Interview Assistant</CardTitle>
+            <CardTitle>Friday Interview Assistant</CardTitle>
             <CardDescription>
               Practice interviews and get real-time feedback
             </CardDescription>
@@ -187,7 +187,7 @@ export const JarvisInterviewAssistant: React.FC = () => {
                   <div className="flex justify-start mb-4">
                     <div className="bg-muted rounded-lg p-4 flex items-center space-x-2">
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Jarvis is thinking...</span>
+                      <span>Friday is thinking...</span>
                     </div>
                   </div>
                 )}

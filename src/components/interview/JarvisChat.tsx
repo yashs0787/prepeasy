@@ -21,7 +21,7 @@ export function JarvisChat({ currentModule, careerPath }: JarvisChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi there! I'm Jarvis, your AI interview coach for the ${careerPath} career path. How can I help you prepare for interviews today?`
+      content: `Hi there! I'm Friday, your AI interview coach for the ${careerPath} career path. How can I help you prepare for interviews today?`
     }
   ]);
   const [input, setInput] = useState('');
@@ -164,7 +164,7 @@ export function JarvisChat({ currentModule, careerPath }: JarvisChatProps) {
           <div className="flex justify-start mb-4">
             <div className="bg-slate-700 rounded-lg p-3 flex items-center space-x-2">
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Jarvis is thinking...</span>
+              <span>Friday is thinking...</span>
             </div>
           </div>
         )}

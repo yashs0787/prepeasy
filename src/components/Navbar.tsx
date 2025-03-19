@@ -48,7 +48,7 @@ export function Navbar() {
               {user && (
                 <Link to="/jarvis">
                   <Button variant="outline" className="hidden md:inline-flex hover:text-neon-purple hover:bg-neon-purple/10">
-                    Jarvis AI
+                    Friday AI
                   </Button>
                 </Link>
               )}

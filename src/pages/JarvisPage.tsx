@@ -55,8 +55,8 @@ export default function JarvisPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
         <Helmet>
-          <title>Jarvis - Your AI Interview Coach</title>
-          <meta name="description" content="Master interviews with Jarvis, your personal AI interview coach" />
+          <title>Friday – Your AI-Powered Interview & Job Prep Coach</title>
+          <meta name="description" content="Master interviews with Friday, your personal AI interview coach" />
         </Helmet>
         
         <JarvisHeader 

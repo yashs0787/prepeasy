@@ -20,7 +20,7 @@ export function JarvisHeader({ selectedCareerPath, progress }: JarvisHeaderProps
             <div className="h-9 w-9 rounded-full bg-gradient-to-r from-indigo-600 to-violet-600 flex items-center justify-center">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <span className="font-bold text-xl">Jarvis</span>
+            <span className="font-bold text-xl">Friday</span>
           </Link>
           {selectedCareerPath && (
             <div className="hidden md:flex items-center ml-4 bg-slate-800/50 py-1 px-3 rounded-full text-sm">
