@@ -1,40 +1,139 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { JobCard } from "@/components/JobCard";
 import { Job } from "@/lib/types";
-import { Sparkles, ClockIcon } from "lucide-react";
+import { Sparkles, ClockIcon, Info } from "lucide-react";
 import { useJobs } from "@/hooks/useJobs";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { useProfileData } from './settings/useProfileData';
+
+interface RecommendedJob {
+  id: string;
+  title: string;
+  company: string;
+  score?: number;
+  reason?: string;
+  growthRate?: string;
+  posted?: string;
+}
+
+interface Recommendations {
+  bestMatch: RecommendedJob[];
+  trending: RecommendedJob[];
+  newOpportunities: RecommendedJob[];
+}
 
 export function JobRecommendationsTab() {
-  const { jobs, isLoading, toggleSaveJob } = useJobs();
+  const { jobs, isLoading: isJobsLoading, toggleSaveJob } = useJobs();
   const [activeCategory, setActiveCategory] = useState<'best-match' | 'trending' | 'recent'>('best-match');
+  const [recommendations, setRecommendations] = useState<Recommendations | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
+  const { profile, fetchProfileData, isLoading: isProfileLoading } = useProfileData(user);
 
-  // Filter jobs based on active category
-  const getFilteredJobs = () => {
-    // In a real application, we would use Mixtral/GPT-4 to intelligently recommend jobs
-    // For now, we'll just simulate the functionality with basic filtering
+  useEffect(() => {
+    if (user) {
+      fetchProfileData();
+    }
+  }, [user, fetchProfileData]);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      if (!user || isProfileLoading) return;
+      
+      setIsLoading(true);
+      try {
+        // Create a simplified resume data object
+        const resumeData = {
+          personalInfo: {
+            name: profile.fullName,
+            location: profile.location,
+            bio: profile.bio
+          },
+          // Here you would include other resume sections if available
+        };
+        
+        // Include job preferences
+        const preferences = {
+          title: profile.jobPreferences.title,
+          industry: profile.jobPreferences.industry,
+          jobType: profile.jobPreferences.jobType,
+          minSalary: profile.jobPreferences.minSalary,
+          remote: profile.jobPreferences.remote
+        };
+        
+        // Call the Supabase Edge Function
+        const { data, error } = await supabase.functions.invoke('job-recommendations', {
+          body: { resumeData, preferences }
+        });
+        
+        if (error) throw error;
+        
+        if (data && data.success && data.recommendations) {
+          setRecommendations(data.recommendations);
+        } else {
+          toast.error('Failed to load recommendations');
+        }
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+        toast.error('Something went wrong while fetching recommendations');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchRecommendations();
+  }, [user, profile, isProfileLoading]);
+
+  // Map recommended jobs to Job format for JobCard
+  const mapToJobFormat = (recommendedJobs: RecommendedJob[]): Job[] => {
+    return recommendedJobs.map(job => ({
+      id: job.id,
+      title: job.title,
+      company: job.company,
+      location: job.reason || job.growthRate || job.posted || '',
+      description: job.reason || '',
+      salary: '',
+      jobType: 'Full-time',
+      workType: 'On-site',
+      postedAt: job.posted || new Date().toISOString(),
+      skills: [],
+      source: job.company,
+      isSaved: false,
+      applicationStatus: null,
+      category: 'Technology',
+      experienceLevel: 'Mid-level',
+      industry: 'Technology',
+      hiringManager: {
+        name: '',
+        role: '',
+        platform: ''
+      }
+    }));
+  };
+
+  // Get current recommendations based on active category
+  const getCurrentRecommendations = (): Job[] => {
+    if (!recommendations) return [];
     
     switch (activeCategory) {
       case 'best-match':
-        // In a real app, this would use ML to match user skills with job requirements
-        return jobs.slice(0, 5);
+        return mapToJobFormat(recommendations.bestMatch);
       case 'trending':
-        // In a real app, this would use analytics data to identify trending jobs
-        return jobs.filter(job => job.category === 'Engineering').slice(0, 3);
+        return mapToJobFormat(recommendations.trending);
       case 'recent':
-        // Sort by most recent first
-        return [...jobs].sort((a, b) => 
-          new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()
-        ).slice(0, 5);
+        return mapToJobFormat(recommendations.newOpportunities);
       default:
-        return jobs.slice(0, 5);
+        return mapToJobFormat(recommendations.bestMatch);
     }
   };
 
-  const recommendedJobs = getFilteredJobs();
+  const recommendedJobs = getCurrentRecommendations();
 
   const handleSelectJob = (jobId: string) => {
     // In a real application, this would track user interactions for better recommendations
@@ -46,6 +145,8 @@ export function JobRecommendationsTab() {
     console.log('Apply to job:', jobId);
   };
 
+  const hasProfileData = profile.fullName && profile.jobPreferences.title;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -55,6 +156,22 @@ export function JobRecommendationsTab() {
           <span className="text-sm font-medium">AI-Powered</span>
         </div>
       </div>
+
+      {!hasProfileData && !isProfileLoading && (
+        <Card className="bg-amber-50 border-amber-200">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-2">
+              <Info className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-medium text-amber-800">Complete your profile</p>
+                <p className="text-sm text-amber-700">
+                  Adding your full name, job title, and preferences will help us provide more accurate job recommendations.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader className="pb-3">
@@ -92,7 +209,7 @@ export function JobRecommendationsTab() {
             </div>
           </div>
 
-          {isLoading ? (
+          {(isLoading || isProfileLoading) ? (
             <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
                 <div key={i} className="border rounded-xl p-4 flex gap-3">
