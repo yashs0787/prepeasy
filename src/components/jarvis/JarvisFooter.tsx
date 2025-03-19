@@ -8,7 +8,7 @@ export function JarvisFooter() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-slate-400">
-            © 2023 Friday AI. All rights reserved.
+            © 2023 Friday – Your AI-Powered Interview & Job Prep Coach. All rights reserved.
           </p>
           <div className="flex gap-4 mt-4 md:mt-0">
             <Button variant="link" size="sm" className="text-slate-400">

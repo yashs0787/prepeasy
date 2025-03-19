@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { NavLinks } from "@/components/NavLinks";
-import { Zap } from "lucide-react";
+import { Zap, Sparkles } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function Navbar() {
@@ -48,7 +48,10 @@ export function Navbar() {
               {user && (
                 <Link to="/jarvis">
                   <Button variant="outline" className="hidden md:inline-flex hover:text-neon-purple hover:bg-neon-purple/10">
-                    Friday AI
+                    <div className="flex items-center gap-1">
+                      <Sparkles className="h-4 w-4 text-amber-400 mr-1" />
+                      Friday – <span className="text-xs ml-1">Your AI-Powered Interview & Job Prep Coach</span>
+                    </div>
                   </Button>
                 </Link>
               )}

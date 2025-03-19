@@ -26,7 +26,7 @@ export function NavLinks() {
             <div className="flex items-center gap-1">
               <Sparkles className="h-4 w-4 text-amber-400" />
               Friday
-              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs px-1.5 py-0.5 rounded-full font-medium ml-1">AI</span>
+              <span className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white text-xs px-1.5 py-0.5 rounded-full font-medium ml-1">Your AI-Powered Interview & Job Prep Coach</span>
             </div>
           </NavLink>
         </>

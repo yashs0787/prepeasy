@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Check } from 'lucide-react';
+import { Check, Zap, Clock, DollarSign, BriefcaseBusiness } from 'lucide-react';
 
 interface SolutionSectionProps {
   scrollY: number;
@@ -15,6 +15,24 @@ export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrol
     "Smart job recommendations based on your skills",
     "Automated application tracking and follow-ups",
     "Interview preparation with industry-specific coaching"
+  ];
+
+  const insights = [
+    {
+      icon: <Clock className="h-8 w-8 text-neon-green" />,
+      title: "100x Faster",
+      description: "Our AI accelerates job preparation and application process by 100x"
+    },
+    {
+      icon: <DollarSign className="h-8 w-8 text-neon-yellow" />,
+      title: "10x More Affordable",
+      description: "Access premium career services at a fraction of traditional coaching costs"
+    },
+    {
+      icon: <BriefcaseBusiness className="h-8 w-8 text-neon-blue" />,
+      title: "Competitive Edge",
+      description: "Specialized for competitive fields like consulting and finance"
+    }
   ];
 
   return (
@@ -68,6 +86,27 @@ export const SolutionSection: React.FC<SolutionSectionProps> = ({ scrollY, scrol
                   </li>
                 ))}
               </ul>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                {insights.map((insight, index) => (
+                  <div 
+                    key={index}
+                    className="bg-slate-900/70 p-6 rounded-lg border border-slate-800"
+                    style={{
+                      opacity: scrollY > (600 + index * 30) ? 1 : 0,
+                      transform: scrollY > (600 + index * 30) ? 'translateY(0)' : 'translateY(10px)',
+                      transition: 'opacity 0.5s ease, transform 0.5s ease',
+                      transitionDelay: `${index * 0.1}s`
+                    }}
+                  >
+                    <div className="flex justify-center mb-3">
+                      {insight.icon}
+                    </div>
+                    <h3 className="text-lg font-bold text-center mb-2">{insight.title}</h3>
+                    <p className="text-sm text-slate-300 text-center">{insight.description}</p>
+                  </div>
+                ))}
+              </div>
               
               <Button 
                 size="lg" 
