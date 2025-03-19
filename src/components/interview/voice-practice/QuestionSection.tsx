@@ -51,6 +51,12 @@ export function QuestionSection({
           ? question.text
           : "Start a practice session to get interview questions"}
       </p>
+      
+      {isPracticing && question && question.careerTrack === 'consulting' && (
+        <div className="text-xs text-muted-foreground mt-2 bg-background/50 p-2 rounded">
+          <strong>Tip:</strong> For case questions, structure your answer with a clear problem statement, analytical framework, and recommendation.
+        </div>
+      )}
     </div>
   );
 }

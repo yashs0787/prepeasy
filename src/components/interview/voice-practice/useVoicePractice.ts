@@ -5,9 +5,12 @@ import { InterviewQuestion } from '../types/interviewTypes';
 import { useElevenLabsVoice } from '../useElevenLabsVoice';
 import { useSpeechRecognition } from '../useSpeechRecognition';
 
+type AIModel = 'Claude 3 Sonnet' | 'GPT-4 Turbo';
+
 export function useVoicePractice() {
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [userTranscript, setUserTranscript] = useState('');
+  const [activeModel, setActiveModel] = useState<AIModel>('Claude 3 Sonnet');
   
   const { 
     apiKey, 
@@ -60,6 +63,12 @@ export function useVoicePractice() {
     setUserTranscript(e.target.value);
   };
 
+  const switchModel = () => {
+    const newModel = activeModel === 'Claude 3 Sonnet' ? 'GPT-4 Turbo' : 'Claude 3 Sonnet';
+    setActiveModel(newModel);
+    toast.info(`Switched to ${newModel} for ${newModel === 'Claude 3 Sonnet' ? 'structured reasoning' : 'detailed explanations'}`);
+  };
+
   return {
     showVoiceSettings,
     setShowVoiceSettings,
@@ -68,11 +77,13 @@ export function useVoicePractice() {
     isGeneratingSpeech,
     isPlaying,
     isSpeechRecording,
+    activeModel,
     readQuestionAloud,
     handleStartRecording,
     handleStopRecording,
     handleTextareaChange,
     stopSpeaking,
+    switchModel,
     isSupported,
     apiKey
   };

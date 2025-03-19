@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Pause, Play } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { Mic, MicOff, RefreshCw, PlayCircle, StopCircle, Cpu } from 'lucide-react';
 
 interface RecordingControlsProps {
   isPracticing: boolean;
@@ -13,6 +13,8 @@ interface RecordingControlsProps {
   onStopRecording: () => void;
   onStartPractice: () => void;
   onStopPractice: () => void;
+  onSwitchModel?: () => void;
+  activeModel?: string;
 }
 
 export function RecordingControls({
@@ -23,52 +25,70 @@ export function RecordingControls({
   onStartRecording,
   onStopRecording,
   onStartPractice,
-  onStopPractice
+  onStopPractice,
+  onSwitchModel,
+  activeModel = 'Claude 3 Sonnet'
 }: RecordingControlsProps) {
-  if (!isPracticing) {
-    return (
-      <Button onClick={onStartPractice} className="w-full">
-        <Play className="mr-2 h-4 w-4" /> Start Practice Session
-      </Button>
-    );
-  }
-
   return (
     <div className="space-y-4">
-      <div className="flex justify-center">
-        <Button
-          size="lg"
-          className={`rounded-full h-16 w-16 ${isSpeechRecording ? 'bg-red-500 hover:bg-red-600' : ''}`}
-          onClick={isSpeechRecording ? onStopRecording : onStartRecording}
-        >
-          {isSpeechRecording ? (
-            <MicOff className="h-6 w-6" />
+      <Textarea
+        placeholder={isPracticing ? "Your answer will appear here as you speak..." : "Start a practice session to answer interview questions"}
+        value={userTranscript}
+        onChange={onUserTranscriptChange}
+        className="min-h-[150px] resize-none"
+        disabled={!isPracticing}
+      />
+      
+      <div className="flex flex-wrap gap-2 justify-between">
+        <div className="flex gap-2">
+          {!isPracticing ? (
+            <Button onClick={onStartPractice}>
+              <PlayCircle className="mr-2 h-4 w-4" /> 
+              Start Practice
+            </Button>
           ) : (
-            <Mic className="h-6 w-6" />
+            <>
+              <Button 
+                variant={isSpeechRecording ? "destructive" : "default"}
+                onClick={isSpeechRecording ? onStopRecording : onStartRecording}
+                disabled={!isPracticing}
+              >
+                {isSpeechRecording ? (
+                  <>
+                    <MicOff className="mr-2 h-4 w-4" /> 
+                    Stop Recording
+                  </>
+                ) : (
+                  <>
+                    <Mic className="mr-2 h-4 w-4" /> 
+                    Record Answer
+                  </>
+                )}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={onStopPractice}
+              >
+                <StopCircle className="mr-2 h-4 w-4" /> 
+                End Practice
+              </Button>
+            </>
           )}
-        </Button>
-      </div>
-      
-      <div className="text-center text-sm">
-        {isSpeechRecording ? 'Recording... Click to stop' : 'Click to record your answer'}
-      </div>
-      
-      {/* Transcript Display Area */}
-      {(isSpeechRecording || userTranscript) && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Your Answer:</label>
-          <Textarea 
-            className={`min-h-[100px] ${isSpeechRecording ? 'border-red-500 animate-pulse' : ''}`}
-            value={userTranscript}
-            onChange={onUserTranscriptChange}
-            placeholder="Your answer will appear here as you speak..."
-          />
         </div>
-      )}
-      
-      <Button variant="outline" onClick={onStopPractice} className="w-full">
-        <Pause className="mr-2 h-4 w-4" /> End Practice Session
-      </Button>
+        
+        {isPracticing && onSwitchModel && (
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex gap-1.5 items-center" 
+            onClick={onSwitchModel}
+          >
+            <Cpu className="h-3.5 w-3.5" />
+            Switch to {activeModel === 'Claude 3 Sonnet' ? 'GPT-4 Turbo' : 'Claude 3 Sonnet'}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

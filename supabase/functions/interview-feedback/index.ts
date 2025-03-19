@@ -3,7 +3,9 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const CLAUDE_API_KEY = Deno.env.get('CLAUDE_API_KEY');
+const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
 const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,7 +19,7 @@ serve(async (req) => {
   }
 
   try {
-    const { transcript, question, careerTrack, interviewType } = await req.json();
+    const { transcript, question, careerTrack, interviewType, model = 'Claude 3 Sonnet', isChat = false } = await req.json();
     
     if (!transcript || !question) {
       throw new Error('Missing required parameters: transcript and question are required');
@@ -30,7 +32,12 @@ serve(async (req) => {
     }
     systemPrompt += `. Analyze the candidate's answer to the following interview question and provide detailed, constructive feedback.`;
 
-    // Format the content for Claude
+    // Add case-specific instructions for consulting case interviews
+    if (careerTrack === 'consulting' && interviewType === 'case') {
+      systemPrompt += ` For case interviews, evaluate the structure, logical reasoning, quantitative analysis, and recommendations. Pay special attention to framework application and problem-solving approach.`;
+    }
+
+    // Format the content for the selected model
     const content = `
 ${systemPrompt}
 
@@ -48,47 +55,119 @@ Please provide a comprehensive analysis with the following structure:
 7. Next steps for improvement
 `;
 
-    // Call Claude API
-    const response = await fetch(CLAUDE_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': CLAUDE_API_KEY,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: "claude-3-haiku-20240307",
-        max_tokens: 2000,
-        messages: [
-          {
-            role: "user",
-            content: content
-          }
-        ]
-      })
-    });
+    let data;
+    
+    // Choose which model to use based on the model parameter
+    if (model === 'Claude 3 Sonnet') {
+      // Call Claude API
+      if (!CLAUDE_API_KEY) {
+        throw new Error('CLAUDE_API_KEY environment variable is not set');
+      }
+      
+      const response = await fetch(CLAUDE_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CLAUDE_API_KEY,
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: "claude-3-sonnet-20240229",
+          max_tokens: 2000,
+          messages: [
+            {
+              role: "user",
+              content: content
+            }
+          ]
+        })
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Claude API error: ${errorData.error?.message || response.statusText}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Claude API error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      data = await response.json();
+      
+      // Extract and structure the feedback
+      const rawFeedback = data.content[0].text;
+      
+      // Parse the raw feedback into structured feedback
+      const structuredFeedback = parseClaudeFeedback(rawFeedback);
+
+      return new Response(JSON.stringify({
+        success: true,
+        feedback: structuredFeedback,
+        rawFeedback,
+        modelUsed: 'Claude 3 Sonnet'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+      
+    } else if (model === 'GPT-4 Turbo') {
+      // Call OpenAI API
+      if (!OPENAI_API_KEY) {
+        throw new Error('OPENAI_API_KEY environment variable is not set');
+      }
+      
+      const response = await fetch(OPENAI_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: `The question asked was: "${question}"
+
+The candidate's response was: "${transcript}"
+
+Please provide a comprehensive analysis with the following structure:
+1. Overall assessment (score out of 100)
+2. Key strengths (3-5 bullet points)
+3. Areas for improvement (3-5 bullet points)
+4. Example of a stronger response
+5. Score breakdown by category (content relevance, structure, specificity, professionalism)
+6. Suggested learning resources
+7. Next steps for improvement`
+            }
+          ],
+          max_tokens: 2000
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
+      }
+
+      data = await response.json();
+      
+      // Extract the feedback
+      const rawFeedback = data.choices[0].message.content;
+      
+      // Parse the raw feedback
+      const structuredFeedback = parseOpenAIFeedback(rawFeedback);
+
+      return new Response(JSON.stringify({
+        success: true,
+        feedback: structuredFeedback,
+        rawFeedback,
+        modelUsed: 'GPT-4 Turbo'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } else {
+      throw new Error(`Unsupported model: ${model}`);
     }
-
-    const data = await response.json();
-    
-    // Extract and structure the feedback
-    const rawFeedback = data.content[0].text;
-    
-    // Parse the raw feedback into structured feedback
-    // This is a simplified version - in production, you'd want more robust parsing
-    const structuredFeedback = parseClaudeFeedback(rawFeedback);
-
-    return new Response(JSON.stringify({
-      success: true,
-      feedback: structuredFeedback,
-      rawFeedback
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   } catch (error) {
     console.error('Error in interview-feedback function:', error);
     return new Response(JSON.stringify({ 
@@ -185,4 +264,10 @@ function parseClaudeFeedback(text) {
       nextSteps: "[Parsing error: Could not extract next steps]"
     };
   }
+}
+
+// Helper function to parse OpenAI's feedback into a structured format
+function parseOpenAIFeedback(text) {
+  // Reuse the same parsing logic as Claude for consistency
+  return parseClaudeFeedback(text);
 }
