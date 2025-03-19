@@ -19,10 +19,46 @@ serve(async (req) => {
   }
 
   try {
-    const { transcript, question, careerTrack, interviewType, model = 'Claude 3 Sonnet', isChat = false } = await req.json();
+    const { 
+      transcript, 
+      question, 
+      careerTrack, 
+      interviewType, 
+      model = 'Claude 3 Sonnet', 
+      isFallback = false,
+      previousAttempts = 0
+    } = await req.json();
     
     if (!transcript || !question) {
       throw new Error('Missing required parameters: transcript and question are required');
+    }
+
+    // Smart model selection logic (only applied when model isn't explicitly specified)
+    let selectedModel = model;
+    let reasonForSelection = "User-specified model";
+
+    if (!isFallback && previousAttempts === 0 && !model) {
+      // Logic for automatic model selection
+      const isComplexQuestion = isComplex(question, transcript);
+      const needsDetailedExplanation = needsDetails(transcript);
+      
+      // Case interview questions typically need structured reasoning - use Claude
+      if (careerTrack === 'consulting' && interviewType === 'case' && !needsDetailedExplanation) {
+        selectedModel = 'Claude 3 Sonnet';
+        reasonForSelection = "Consulting case interview requiring structured reasoning";
+      } 
+      // For detailed explanations or when user is struggling, use GPT-4 Turbo
+      else if (needsDetailedExplanation || isComplexQuestion) {
+        selectedModel = 'GPT-4 Turbo';
+        reasonForSelection = "Complex question requiring detailed explanation";
+      }
+      // Default to Claude for most responses (more cost effective)
+      else {
+        selectedModel = 'Claude 3 Sonnet';
+        reasonForSelection = "Standard question suited for structured response";
+      }
+      
+      console.log(`Smart model selection chose: ${selectedModel} - Reason: ${reasonForSelection}`);
     }
 
     // Create system prompt based on career track and interview type
@@ -57,8 +93,8 @@ Please provide a comprehensive analysis with the following structure:
 
     let data;
     
-    // Choose which model to use based on the model parameter
-    if (model === 'Claude 3 Sonnet') {
+    // Use the selected model
+    if (selectedModel === 'Claude 3 Sonnet') {
       // Call Claude API
       if (!CLAUDE_API_KEY) {
         throw new Error('CLAUDE_API_KEY environment variable is not set');
@@ -85,6 +121,7 @@ Please provide a comprehensive analysis with the following structure:
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("Claude API error:", errorData);
         throw new Error(`Claude API error: ${errorData.error?.message || response.statusText}`);
       }
 
@@ -100,12 +137,13 @@ Please provide a comprehensive analysis with the following structure:
         success: true,
         feedback: structuredFeedback,
         rawFeedback,
-        modelUsed: 'Claude 3 Sonnet'
+        modelUsed: 'Claude 3 Sonnet',
+        reasonForSelection
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
       
-    } else if (model === 'GPT-4 Turbo') {
+    } else if (selectedModel === 'GPT-4 Turbo') {
       // Call OpenAI API
       if (!OPENAI_API_KEY) {
         throw new Error('OPENAI_API_KEY environment variable is not set');
@@ -146,6 +184,7 @@ Please provide a comprehensive analysis with the following structure:
 
       if (!response.ok) {
         const errorData = await response.json();
+        console.error("OpenAI API error:", errorData);
         throw new Error(`OpenAI API error: ${errorData.error?.message || response.statusText}`);
       }
 
@@ -161,12 +200,13 @@ Please provide a comprehensive analysis with the following structure:
         success: true,
         feedback: structuredFeedback,
         rawFeedback,
-        modelUsed: 'GPT-4 Turbo'
+        modelUsed: 'GPT-4 Turbo',
+        reasonForSelection
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } else {
-      throw new Error(`Unsupported model: ${model}`);
+      throw new Error(`Unsupported model: ${selectedModel}`);
     }
   } catch (error) {
     console.error('Error in interview-feedback function:', error);
@@ -179,6 +219,50 @@ Please provide a comprehensive analysis with the following structure:
     });
   }
 });
+
+// Helper function to check if the question/answer suggests a complex topic
+function isComplex(question: string, answer: string): boolean {
+  // Check question complexity based on keywords
+  const complexKeywords = [
+    'optimize', 'strategy', 'complex', 'analysis', 'framework',
+    'valuation', 'financial model', 'edge case', 'tradeoff',
+    'implementation', 'technical', 'algorithm', 'architecture'
+  ];
+  
+  const combinedText = (question + " " + answer).toLowerCase();
+  
+  // Check for complexity keywords
+  const keywordMatches = complexKeywords.filter(keyword => 
+    combinedText.includes(keyword.toLowerCase())
+  );
+  
+  // Check length - longer answers might indicate complexity
+  const isLongAnswer = answer.length > 500;
+  
+  return keywordMatches.length >= 2 || isLongAnswer;
+}
+
+// Helper function to determine if user needs more detailed explanations
+function needsDetails(answer: string): boolean {
+  // Check for signals that user might be struggling
+  const uncertaintySignals = [
+    'not sure', 'confused', 'difficult', 'struggling',
+    'help', 'don\'t understand', 'clarify', 'explain',
+    'unsure', 'unclear', 'i think', 'maybe', 'perhaps'
+  ];
+  
+  const lowerAnswer = answer.toLowerCase();
+  
+  // Check for uncertainty signals
+  const uncertaintyMatches = uncertaintySignals.filter(signal => 
+    lowerAnswer.includes(signal.toLowerCase())
+  );
+  
+  // Short, incomplete answers might indicate struggling
+  const isTooShort = answer.length < 150;
+  
+  return uncertaintyMatches.length >= 1 || isTooShort;
+}
 
 // Helper function to parse Claude's feedback into a structured format
 function parseClaudeFeedback(text) {
