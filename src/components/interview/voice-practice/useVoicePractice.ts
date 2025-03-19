@@ -8,6 +8,7 @@ import { useSpeechToText } from '../hooks/useSpeechToText';
 export function useVoicePractice() {
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [userTranscript, setUserTranscript] = useState('');
+  const [useWhisperApi, setUseWhisperApi] = useState(true);
   
   const { 
     apiKey, 
@@ -21,11 +22,12 @@ export function useVoicePractice() {
     startListening,
     stopListening,
     isListening: isSpeechRecording,
+    isProcessing: isTranscribing, 
     transcript,
     isSupported,
     resetTranscript,
     text
-  } = useSpeechToText();
+  } = useSpeechToText(useWhisperApi);
 
   // Update transcript as speech recognition generates it
   useEffect(() => {
@@ -53,12 +55,16 @@ export function useVoicePractice() {
     startListening();
   };
 
-  const handleStopRecording = () => {
-    stopListening();
+  const handleStopRecording = async () => {
+    await stopListening();
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setUserTranscript(e.target.value);
+  };
+
+  const toggleWhisperApi = (useWhisper: boolean) => {
+    setUseWhisperApi(useWhisper);
   };
 
   return {
@@ -69,12 +75,15 @@ export function useVoicePractice() {
     isGeneratingSpeech,
     isPlaying,
     isSpeechRecording,
+    isTranscribing,
     readQuestionAloud,
     handleStartRecording,
     handleStopRecording,
     handleTextareaChange,
     stopSpeaking,
     isSupported,
-    apiKey
+    apiKey,
+    useWhisperApi,
+    toggleWhisperApi
   };
 }
