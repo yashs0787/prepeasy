@@ -8,6 +8,7 @@ import { MobileTabs } from '@/components/dashboard/MobileTabs';
 import { ApplicationsTab } from '@/components/dashboard/applications';
 import { SavedJobsTab } from '@/components/dashboard/SavedJobsTab';
 import { InterviewTab } from '@/components/dashboard/InterviewTab';
+import { JobRecommendationsTab } from '@/components/dashboard/JobRecommendationsTab';
 import { useAuth } from '@/App';
 import { useJobs } from '@/hooks/useJobs';
 import { Loader2 } from 'lucide-react';
@@ -82,6 +83,7 @@ export default function Dashboard() {
                 toggleSaveJob={toggleSaveJob} 
               />
             }
+            {activeTab === 'recommendations' && <JobRecommendationsTab />}
             {activeTab === 'interviews' && <InterviewTab />}
             {activeTab === 'settings' && <SettingsTab />}
           </div>

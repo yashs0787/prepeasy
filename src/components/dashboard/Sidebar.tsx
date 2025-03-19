@@ -6,7 +6,8 @@ import {
   User2,
   Settings,
   LogOut,
-  Video
+  Video,
+  Sparkles
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,6 +52,14 @@ export function Sidebar({ activeTab, onTabChange }: SidebarProps) {
           >
             <BookmarkIcon className="mr-2 h-4 w-4" />
             Saved Jobs
+          </Button>
+          <Button
+            variant={activeTab === "recommendations" ? "default" : "ghost"}
+            className="w-full justify-start"
+            onClick={() => onTabChange("recommendations")}
+          >
+            <Sparkles className="mr-2 h-4 w-4 text-amber-400" />
+            Recommendations
           </Button>
           <Button
             variant={activeTab === "interviews" ? "default" : "ghost"}
