@@ -1,44 +1,35 @@
 
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { InterviewQuestion, InterviewType } from '../types/interviewTypes';
-import { VoiceSettings } from '../VoiceSettings';
+import React, { useState, useEffect } from 'react';
+import { useVoicePractice } from './useVoicePractice';
+import { Card } from '@/components/ui/card'; 
+import { Button } from '@/components/ui/button';
 import { VoicePracticeHeader } from './VoicePracticeHeader';
 import { QuestionSection } from './QuestionSection';
 import { RecordingControls } from './RecordingControls';
-import { useVoicePractice } from './useVoicePractice';
-import { Lightbulb, Info, Settings } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { TranscriptAnalysis } from '../TranscriptAnalysis';
+import { VoiceSettings } from '../VoiceSettings';
+import { InterviewQuestion } from '../types/interviewTypes';
 
 interface VoicePracticeProps {
-  interviewType: InterviewType;
-  setInterviewType: (type: InterviewType) => void;
-  isPracticing: boolean;
-  isRecording: boolean;
-  startPractice: () => void;
-  stopPractice: () => void;
-  startRecording: () => void;
-  stopRecording: () => void;
-  selectedQuestion: InterviewQuestion | null;
+  question: InterviewQuestion | null;
+  careerTrack?: string;
+  interviewType?: string;
 }
 
-export function VoicePractice({
-  interviewType,
-  setInterviewType,
-  isPracticing,
-  isRecording,
-  startPractice,
-  stopPractice,
-  startRecording: parentStartRecording,
-  stopRecording: parentStopRecording,
-  selectedQuestion
+export function VoicePractice({ 
+  question,
+  careerTrack = 'general',
+  interviewType = 'general'
 }: VoicePracticeProps) {
-  const {
+  const [isPracticing, setIsPracticing] = useState(false);
+  const [isAnalyzed, setIsAnalyzed] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  const { 
     showVoiceSettings,
     setShowVoiceSettings,
     userTranscript,
+    setUserTranscript,
     isGeneratingSpeech,
     isPlaying,
     isSpeechRecording,
@@ -48,139 +39,102 @@ export function VoicePractice({
     handleStopRecording,
     handleTextareaChange,
     stopSpeaking,
-    isSupported,
+    apiKey,
     useWhisperApi,
     toggleWhisperApi
   } = useVoicePractice();
 
-  const [activeTab, setActiveTab] = useState<string>('practice');
-
-  const onStartRecording = () => {
-    if (!isSupported) {
-      return;
+  // Reset transcript when a new question is selected
+  useEffect(() => {
+    if (question) {
+      setUserTranscript('');
+      setIsAnalyzed(false);
     }
-    handleStartRecording();
-    parentStartRecording(); // Call the parent component's recording function
+  }, [question, setUserTranscript]);
+
+  const handleStartPractice = async () => {
+    setIsPracticing(true);
+    setIsAnalyzed(false);
+    
+    // Read the question aloud if we have an API key
+    if (question) {
+      await readQuestionAloud(question);
+    }
   };
 
-  const onStopRecording = () => {
-    handleStopRecording();
-    parentStopRecording(); // Call the parent component's stop recording function
+  const handleStopPractice = () => {
+    setIsPracticing(false);
+    // Stop any speech that might be playing
+    stopSpeaking();
   };
 
-  const onReadQuestion = () => readQuestionAloud(selectedQuestion);
+  const handleAnalyze = () => {
+    setIsAnalyzing(true);
+    
+    // Simulate analysis time
+    setTimeout(() => {
+      setIsAnalyzing(false);
+      setIsAnalyzed(true);
+    }, 1500);
+  };
+
+  // If showing voice settings, render the settings UI
+  if (showVoiceSettings) {
+    return (
+      <VoiceSettings 
+        onClose={() => setShowVoiceSettings(false)} 
+        useWhisperApi={useWhisperApi}
+        onToggleWhisperApi={toggleWhisperApi}
+      />
+    );
+  }
 
   return (
     <div className="space-y-4">
-      <VoicePracticeHeader 
-        interviewType={interviewType}
-        setInterviewType={setInterviewType}
-        onOpenVoiceSettings={() => setShowVoiceSettings(true)}
-      />
-      
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="practice">Practice</TabsTrigger>
-          <TabsTrigger value="tips">Tips & Strategy</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
+      <Card className="p-4">
+        <VoicePracticeHeader 
+          isPracticing={isPracticing}
+          isGeneratingSpeech={isGeneratingSpeech}
+          isPlaying={isPlaying}
+          hasApiKey={!!apiKey}
+          onConfigureVoice={() => setShowVoiceSettings(true)}
+        />
         
-        <TabsContent value="practice" className="space-y-4 mt-4">
+        {question && (
           <QuestionSection 
-            question={selectedQuestion}
-            isPracticing={isPracticing}
-            onStartPractice={startPractice}
-            onReadQuestion={onReadQuestion}
+            question={question}
+            onReadAloud={() => readQuestionAloud(question)}
             isGeneratingSpeech={isGeneratingSpeech}
             isPlaying={isPlaying}
             onStopSpeaking={stopSpeaking}
           />
-
-          <RecordingControls 
-            isPracticing={isPracticing}
-            isSpeechRecording={isSpeechRecording}
-            isTranscribing={isTranscribing}
-            userTranscript={userTranscript}
-            onUserTranscriptChange={handleTextareaChange}
-            onStartRecording={onStartRecording}
-            onStopRecording={onStopRecording}
-            onStartPractice={startPractice}
-            onStopPractice={stopPractice}
-          />
-        </TabsContent>
+        )}
         
-        <TabsContent value="tips" className="mt-4">
-          <div className="bg-muted p-4 rounded-lg space-y-4">
-            <div className="flex items-start gap-3">
-              <Lightbulb className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Voice Practice Tips</h3>
-                <p className="text-sm">Practice speaking clearly and at a moderate pace. The speech recognition works best when you speak naturally without long pauses or very fast speech.</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3">
-              <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-              <div>
-                <h3 className="font-semibold mb-1">Interview Strategy</h3>
-                <p className="text-sm">Record your answers and listen back to identify areas for improvement. Pay attention to filler words, pacing, and clarity. This tool helps you practice both your content and delivery.</p>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="settings" className="mt-4">
-          <div className="bg-muted p-4 rounded-lg space-y-4">
-            <div className="flex items-start gap-3">
-              <Settings className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
-              <div className="space-y-4 w-full">
-                <h3 className="font-semibold">Speech Recognition Settings</h3>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="whisper-toggle" className="font-medium">Use OpenAI Whisper API</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Higher accuracy but takes a few seconds to process
-                    </p>
-                  </div>
-                  <Switch 
-                    id="whisper-toggle" 
-                    checked={useWhisperApi} 
-                    onCheckedChange={toggleWhisperApi}
-                  />
-                </div>
-
-                <div className="text-sm">
-                  <p className="text-muted-foreground">
-                    {useWhisperApi 
-                      ? "Using OpenAI Whisper API: Better accuracy, especially for technical terms, but with a short processing delay." 
-                      : "Using Browser Speech Recognition: Instant results but may be less accurate for complex terms."}
-                  </p>
-                </div>
-
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowVoiceSettings(true)}
-                  className="w-full mt-2"
-                >
-                  <Settings className="mr-2 h-4 w-4" />
-                  Voice Settings
-                </Button>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Voice Settings Dialog */}
-      <Dialog open={showVoiceSettings} onOpenChange={setShowVoiceSettings}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Voice Settings</DialogTitle>
-          </DialogHeader>
-          <VoiceSettings onClose={() => setShowVoiceSettings(false)} />
-        </DialogContent>
-      </Dialog>
+        <RecordingControls
+          isPracticing={isPracticing}
+          isSpeechRecording={isSpeechRecording}
+          isTranscribing={isTranscribing}
+          userTranscript={userTranscript}
+          onUserTranscriptChange={handleTextareaChange}
+          onStartRecording={handleStartRecording}
+          onStopRecording={handleStopRecording}
+          onStartPractice={handleStartPractice}
+          onStopPractice={handleStopPractice}
+        />
+      </Card>
+      
+      {isPracticing && userTranscript && (
+        <TranscriptAnalysis
+          transcript={userTranscript}
+          onTranscriptChange={setUserTranscript}
+          onAnalyze={handleAnalyze}
+          isAnalyzing={isAnalyzing}
+          isAnalyzed={isAnalyzed}
+          currentQuestion={question?.text}
+          careerTrack={careerTrack}
+          interviewType={interviewType}
+        />
+      )}
     </div>
   );
 }

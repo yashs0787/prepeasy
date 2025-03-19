@@ -1,3 +1,4 @@
+
 export type InterviewType = 'technical' | 'behavioral' | 'case' | 'financial' | 'general';
 export type CareerTrack = 'consulting' | 'investment-banking' | 'tech' | 'general';
 export type CaseType = 'market-sizing' | 'profitability' | 'market-entry' | 'growth-strategy' | 'cost-reduction' | 'pricing' | 'general-case';
@@ -78,4 +79,37 @@ export interface CaseStudyData {
   suggestedFrameworks: string[];
   sampleSolution?: string;
   tips?: string[];
+  // New fields for advanced case evaluation
+  keyInsights?: string[]; // Critical insights any valid solution should identify
+  acceptableApproaches?: CaseApproach[]; // Different valid approaches to solve the case
+  evaluationCriteria?: EvaluationCriterion[]; // Specific criteria for assessment
+}
+
+// New types for case study solutions
+export interface CaseApproach {
+  id: string;
+  name: string; // e.g., "Market Segmentation First", "Cost Analysis Focused"
+  description: string;
+  strengths: string[];
+  keyConcepts: string[]; // Important concepts this approach should demonstrate
+  sampleSolution?: string; // Example solution using this approach
+}
+
+export interface EvaluationCriterion {
+  id: string;
+  name: string; // e.g., "Problem Structuring", "Quantitative Analysis"
+  description: string;
+  weight: number; // Relative importance (0-100)
+  checkpoints: string[]; // Specific elements to check for in a solution
+}
+
+export interface CaseSolutionEvaluation {
+  overallScore: number;
+  approach: string; // Identified approach used by the candidate
+  criteriaScores: Record<string, number>; // Scores by criterion
+  strengths: string[];
+  areasForImprovement: string[];
+  missedInsights: string[];
+  suggestedNextSteps: string[];
+  alternativeApproaches?: string[]; // Other approaches that could have worked well
 }

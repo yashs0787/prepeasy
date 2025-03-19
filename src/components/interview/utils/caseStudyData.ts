@@ -1,5 +1,67 @@
+import { CaseStudyData, CaseApproach, EvaluationCriterion } from '../types/interviewTypes';
 
-import { CaseStudyData } from '../types/interviewTypes';
+// Define common evaluation criteria that can be reused across cases
+const commonEvaluationCriteria: EvaluationCriterion[] = [
+  {
+    id: 'structure',
+    name: 'Problem Structuring',
+    description: 'How well the candidate organized their approach and broke down the problem',
+    weight: 25,
+    checkpoints: [
+      'Clearly defined the problem',
+      'Created a logical framework',
+      'Approached the problem systematically',
+      'Prioritized key areas correctly'
+    ]
+  },
+  {
+    id: 'analysis',
+    name: 'Analytical Rigor',
+    description: 'Depth and accuracy of analysis performed',
+    weight: 20,
+    checkpoints: [
+      'Used appropriate calculations',
+      'Made reasonable assumptions',
+      'Interpreted data correctly',
+      'Drew logical conclusions from analysis'
+    ]
+  },
+  {
+    id: 'creativity',
+    name: 'Creative Thinking',
+    description: 'Novel ideas and approaches to solving the problem',
+    weight: 15,
+    checkpoints: [
+      'Generated multiple solution options',
+      'Thought beyond conventional approaches',
+      'Identified innovative opportunities'
+    ]
+  },
+  {
+    id: 'communication',
+    name: 'Communication',
+    description: 'Clarity and effectiveness of communication',
+    weight: 15,
+    checkpoints: [
+      'Articulated thoughts clearly',
+      'Structured response coherently',
+      'Used appropriate business terminology',
+      'Summarized key points effectively'
+    ]
+  },
+  {
+    id: 'business-judgment',
+    name: 'Business Judgment',
+    description: 'Quality of recommendations and business instincts',
+    weight: 25,
+    checkpoints: [
+      'Made practical recommendations',
+      'Considered implementation challenges',
+      'Addressed key business objectives',
+      'Demonstrated commercial awareness'
+    ]
+  }
+];
 
 export const consultingCaseStudies: CaseStudyData[] = [
   {
@@ -24,7 +86,41 @@ export const consultingCaseStudies: CaseStudyData[] = [
       'Analyze customer segmentation and behavior changes',
       'Evaluate the competition and market positioning',
       'Investigate both in-store and online performance'
-    ]
+    ],
+    keyInsights: [
+      'Luxury market is growing while client is declining, indicating loss of market share',
+      'Revenue decline is accelerating (-20% then -12.5%)',
+      'Store count unchanged, suggesting per-store performance issues',
+      'Price point unchanged, suggesting potential value perception problems',
+      'Digital transformation in luxury retail may be impacting traditional sales channels'
+    ],
+    acceptableApproaches: [
+      {
+        id: 'customer-focus',
+        name: 'Customer-Centric Analysis',
+        description: 'Focus on changing customer preferences and behaviors',
+        strengths: ['Identifies shifts in target demographics', 'Addresses brand perception issues'],
+        keyConcepts: ['Customer segmentation', 'Brand positioning', 'Customer journey analysis'],
+        sampleSolution: 'The analysis shows our client has failed to adapt to changing customer preferences in the luxury segment. I recommend a three-part strategy: 1) Refresh brand positioning through collaborations with contemporary designers, 2) Enhance the omnichannel experience to capture digital-first luxury shoppers, and 3) Implement a data-driven personalization program to rebuild customer loyalty.'
+      },
+      {
+        id: 'competitive-focus',
+        name: 'Competitive Landscape Analysis',
+        description: 'Focus on competitive dynamics and market positioning',
+        strengths: ['Identifies competitive threats', 'Addresses market positioning'],
+        keyConcepts: ['Competitive analysis', 'Market positioning', 'Differentiation strategy'],
+        sampleSolution: 'My analysis reveals that new market entrants and repositioned competitors have eroded our client\'s market share. I recommend: 1) Redefine the brand\'s unique value proposition to differentiate from competitors, 2) Invest in product innovation focused on sustainability and exclusivity, and 3) Optimize pricing strategy with limited editions and tiered product offerings to create multiple entry points while maintaining luxury positioning.'
+      },
+      {
+        id: 'operational-focus',
+        name: 'Operational Excellence Approach',
+        description: 'Focus on internal operations and efficiency',
+        strengths: ['Identifies internal inefficiencies', 'Addresses execution problems'],
+        keyConcepts: ['Store operations', 'Supply chain optimization', 'Inventory management'],
+        sampleSolution: 'The data suggests our client\'s declining sales stem from operational inefficiencies rather than market conditions. I recommend: 1) Optimize store staffing and training to improve conversion rates, 2) Implement just-in-time inventory management to ensure product availability and reduce markdowns, and 3) Restructure the supply chain to reduce lead times and improve responsiveness to trends.'
+      }
+    ],
+    evaluationCriteria: commonEvaluationCriteria
   },
   {
     id: 'case-2',
@@ -100,4 +196,3 @@ export const getCaseStudiesByType = (caseType: string): CaseStudyData[] => {
 export const getCaseStudyById = (id: string): CaseStudyData | undefined => {
   return consultingCaseStudies.find(study => study.id === id);
 };
-
