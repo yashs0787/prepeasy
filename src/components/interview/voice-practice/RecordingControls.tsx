@@ -28,7 +28,11 @@ export function RecordingControls({
   return (
     <div className="space-y-4">
       <Textarea
-        placeholder={isPracticing ? "Your answer will appear here as you speak..." : "Start a practice session to answer interview questions"}
+        placeholder={isPracticing 
+          ? (isSpeechRecording 
+              ? "Speaking... Your words will appear here in real-time" 
+              : "Your answer will appear here as you speak...")
+          : "Start a practice session to answer interview questions"}
         value={userTranscript}
         onChange={onUserTranscriptChange}
         className="min-h-[150px] resize-none"

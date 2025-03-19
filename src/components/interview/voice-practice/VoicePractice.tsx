@@ -44,12 +44,16 @@ export function VoicePractice({
     handleStartRecording,
     handleStopRecording,
     handleTextareaChange,
-    stopSpeaking
+    stopSpeaking,
+    isSupported
   } = useVoicePractice();
 
   const [activeTab, setActiveTab] = useState<string>('practice');
 
   const onStartRecording = () => {
+    if (!isSupported) {
+      return;
+    }
     handleStartRecording();
     parentStartRecording(); // Call the parent component's recording function
   };
@@ -103,8 +107,8 @@ export function VoicePractice({
             <div className="flex items-start gap-3">
               <Lightbulb className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
               <div>
-                <h3 className="font-semibold mb-1">Case Framework Structure</h3>
-                <p className="text-sm">For case interviews, use frameworks like the Profitability Framework, Market Entry, or Porter's Five Forces depending on the case type. Structure your answer with a clear introduction, analysis, and recommendation.</p>
+                <h3 className="font-semibold mb-1">Voice Practice Tips</h3>
+                <p className="text-sm">Practice speaking clearly and at a moderate pace. The speech recognition works best when you speak naturally without long pauses or very fast speech.</p>
               </div>
             </div>
             
@@ -112,7 +116,7 @@ export function VoicePractice({
               <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-semibold mb-1">Interview Strategy</h3>
-                <p className="text-sm">Our system provides intelligent feedback based on your answers, analyzing structure, content, and delivery. Practice different types of questions to develop a comprehensive interview skillset.</p>
+                <p className="text-sm">Record your answers and listen back to identify areas for improvement. Pay attention to filler words, pacing, and clarity. This tool helps you practice both your content and delivery.</p>
               </div>
             </div>
           </div>

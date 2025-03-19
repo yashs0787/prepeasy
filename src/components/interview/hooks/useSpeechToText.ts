@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useSpeechRecognition } from '../useSpeechRecognition';
 
 export const useSpeechToText = () => {
@@ -9,18 +9,25 @@ export const useSpeechToText = () => {
     stopRecording,
     isRecording: isListening,
     transcript,
-    resetTranscript
+    resetTranscript,
+    isSupported
   } = useSpeechRecognition();
 
+  // Update text when transcript changes
+  useEffect(() => {
+    if (transcript) {
+      setText(transcript);
+    }
+  }, [transcript]);
+
   const startListening = useCallback(() => {
-    startRecording();
     resetTranscript();
+    startRecording();
   }, [startRecording, resetTranscript]);
 
   const stopListening = useCallback(() => {
     stopRecording();
-    setText(transcript);
-  }, [stopRecording, transcript]);
+  }, [stopRecording]);
 
   return {
     isListening,
@@ -29,6 +36,7 @@ export const useSpeechToText = () => {
     stopListening,
     resetTranscript,
     text,
-    setText
+    setText,
+    isSupported
   };
 };

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { InterviewQuestion } from '../types/interviewTypes';
 import { useElevenLabsVoice } from '../useElevenLabsVoice';
-import { useSpeechRecognition } from '../useSpeechRecognition';
+import { useSpeechToText } from '../hooks/useSpeechToText';
 
 export function useVoicePractice() {
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
@@ -18,13 +18,14 @@ export function useVoicePractice() {
   } = useElevenLabsVoice();
 
   const {
-    startRecording,
-    stopRecording,
-    isRecording: isSpeechRecording,
+    startListening,
+    stopListening,
+    isListening: isSpeechRecording,
     transcript,
     isSupported,
-    resetTranscript
-  } = useSpeechRecognition();
+    resetTranscript,
+    text
+  } = useSpeechToText();
 
   // Update transcript as speech recognition generates it
   useEffect(() => {
@@ -49,11 +50,11 @@ export function useVoicePractice() {
     }
     
     resetTranscript();
-    startRecording();
+    startListening();
   };
 
   const handleStopRecording = () => {
-    stopRecording();
+    stopListening();
   };
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

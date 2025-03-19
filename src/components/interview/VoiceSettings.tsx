@@ -7,6 +7,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@
 import { Card, CardContent } from '@/components/ui/card';
 import { Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { ElevenLabsVoice, useElevenLabsVoice } from './useElevenLabsVoice';
+import { toast } from 'sonner';
 
 interface VoiceSettingsProps {
   onClose?: () => void;
@@ -34,6 +35,10 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
     if (isPlaying) {
       stopSpeaking();
     } else {
+      if (!apiKey) {
+        toast.error("Please enter your ElevenLabs API key first");
+        return;
+      }
       speakText("Hello, I'm your interview practice assistant. I'll help you prepare for your interviews.");
     }
   };
