@@ -53,3 +53,12 @@ export interface ResumePreviewProps {
   onReturn: () => void;
   onDownload: () => void;
 }
+
+export interface CoverLetterProps {
+  coverLetter: string;
+  jobDescription: string;
+  isGenerating: boolean;
+  onInputChange: (text: string) => void;
+  onJobDescriptionChange: (text: string) => void;
+  onGenerate: () => void;
+}

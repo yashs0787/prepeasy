@@ -10,6 +10,7 @@ import { EducationSection } from './resume/EducationSection';
 import { SkillsSection } from './resume/SkillsSection';
 import { ProjectsSection } from './resume/ProjectsSection';
 import { CertificationsSection } from './resume/CertificationsSection';
+import { CoverLetterSection } from './resume/CoverLetterSection';
 import { ResumePreview } from './resume/ResumePreview';
 import { ResumeSettings } from './resume/ResumeSettings';
 import { AuthDialog } from './resume/AuthDialog';
@@ -36,16 +37,21 @@ export function ResumeBuilder() {
     isOptimizing,
     showAuthDialog,
     resumeRef,
+    coverLetter,
+    jobDescription,
     setActiveTab,
     setShowAuthDialog,
     handleInputChange,
     handleArrayInputChange,
+    handleCoverLetterChange,
+    handleJobDescriptionChange,
     addArrayItem,
     removeArrayItem,
     previewResume,
     handleFormatChange,
     handleDownloadResume,
-    handleAIOptimize
+    handleAIOptimize,
+    handleGenerateCoverLetter
   } = useResumeState();
 
   const handleAuthRequiredAction = (callback: Function) => {
@@ -54,7 +60,7 @@ export function ResumeBuilder() {
       return;
     }
     
-    if (!isSubscribed && (callback === handleDownloadResume || callback === handleAIOptimize)) {
+    if (!isSubscribed && (callback === handleDownloadResume || callback === handleAIOptimize || callback === handleGenerateCoverLetter)) {
       setShowSubscribeModal(true);
       return;
     }
@@ -65,8 +71,9 @@ export function ResumeBuilder() {
   return (
     <div className="container mx-auto p-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="editor">Editor</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="editor">Resume Editor</TabsTrigger>
+          <TabsTrigger value="coverLetter">Cover Letter</TabsTrigger>
           <TabsTrigger value="preview">Preview</TabsTrigger>
           <TabsTrigger value="settings">Settings & Export</TabsTrigger>
         </TabsList>
@@ -77,7 +84,7 @@ export function ResumeBuilder() {
               personalInfo={resumeData.personalInfo}
               isOptimizing={isOptimizing}
               onInputChange={(field, value) => handleInputChange('personalInfo', field, value)}
-              onOptimize={() => handleAuthRequiredAction(() => handleAIOptimize('personalInfo'))}
+              onOptimize={() => handleAuthRequiredAction(() => handleAIOptimize('personalInfo', jobDescription))}
             />
           </Card>
           
@@ -145,6 +152,19 @@ export function ResumeBuilder() {
             </Button>
           </div>
         </TabsContent>
+
+        <TabsContent value="coverLetter" className="space-y-6">
+          <Card>
+            <CoverLetterSection
+              coverLetter={coverLetter}
+              jobDescription={jobDescription}
+              isGenerating={isOptimizing}
+              onInputChange={handleCoverLetterChange}
+              onJobDescriptionChange={handleJobDescriptionChange}
+              onGenerate={() => handleAuthRequiredAction(handleGenerateCoverLetter)}
+            />
+          </Card>
+        </TabsContent>
         
         <TabsContent value="preview" className="space-y-6">
           <Card>
@@ -163,7 +183,7 @@ export function ResumeBuilder() {
             selectedFormat={selectedFormat}
             isOptimizing={isOptimizing}
             onFormatChange={handleFormatChange}
-            onOptimize={() => handleAuthRequiredAction(() => handleAIOptimize('all'))}
+            onOptimize={() => handleAuthRequiredAction(() => handleAIOptimize('all', jobDescription))}
             onPreview={previewResume}
             onDownload={() => handleAuthRequiredAction(handleDownloadResume)}
           />

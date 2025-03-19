@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
@@ -7,6 +8,8 @@ export function useResumeState() {
   const [selectedFormat, setSelectedFormat] = useState<string>('standard');
   const [isOptimizing, setIsOptimizing] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState<boolean>(false);
+  const [coverLetter, setCoverLetter] = useState<string>('');
+  const [jobDescription, setJobDescription] = useState<string>('');
   const resumeRef = useRef<HTMLDivElement>(null);
   
   const [resumeData, setResumeData] = useState({
@@ -90,6 +93,14 @@ export function useResumeState() {
     });
   };
 
+  const handleCoverLetterChange = (value: string) => {
+    setCoverLetter(value);
+  };
+
+  const handleJobDescriptionChange = (value: string) => {
+    setJobDescription(value);
+  };
+
   const addArrayItem = (section: string) => {
     setResumeData(prev => {
       const sectionArray = [...prev[section as keyof typeof prev] as any[]];
@@ -149,20 +160,21 @@ export function useResumeState() {
     );
   };
 
-  const handleAIOptimize = async (sectionToOptimize = 'all') => {
+  const handleAIOptimize = async (sectionToOptimize = 'all', jobDesc = '') => {
     setIsOptimizing(true);
     
     try {
-      // Example of what we'll send to the Claude API
+      // Example of what we'll send to the API
       const sectionData = sectionToOptimize === 'all' 
         ? resumeData 
         : resumeData[sectionToOptimize as keyof typeof resumeData];
       
-      // Call the Supabase Edge Function that uses Claude API
+      // Call the Supabase Edge Function
       const response = await supabase.functions.invoke('optimize-resume', {
         body: {
           section: sectionToOptimize,
-          data: sectionData
+          data: sectionData,
+          jobDescription: jobDesc
         }
       });
       
@@ -171,38 +183,92 @@ export function useResumeState() {
       }
       
       // Process the optimization results
-      const optimizedContent = response.data?.optimized || {
-        summary: "I am a highly motivated professional with extensive experience in web development and UI/UX design. My technical expertise includes React, TypeScript, and modern frontend frameworks. I am passionate about creating intuitive user experiences and solving complex problems through clean, efficient code.",
-      };
+      const optimizedContent = response.data?.optimized;
+      
+      if (!optimizedContent) {
+        throw new Error("No optimized content returned");
+      }
       
       // Update the resume data with the optimized content
       if (sectionToOptimize === 'all') {
-        setResumeData(prev => ({
-          ...prev,
-          personalInfo: {
-            ...prev.personalInfo,
-            summary: optimizedContent.summary || prev.personalInfo.summary
+        setResumeData(prev => {
+          const newData = { ...prev };
+          // This would normally iterate through all sections from the response
+          // For demonstration, we just update the summary
+          if (optimizedContent.personalInfo && optimizedContent.personalInfo.summary) {
+            newData.personalInfo = {
+              ...prev.personalInfo,
+              summary: optimizedContent.personalInfo.summary
+            };
           }
-          // Other sections would be updated here
-        }));
+          return newData;
+        });
       } else if (sectionToOptimize === 'personalInfo') {
         setResumeData(prev => ({
           ...prev,
           personalInfo: {
             ...prev.personalInfo,
-            summary: optimizedContent || prev.personalInfo.summary
+            summary: optimizedContent
           }
         }));
       }
       
-      toast.success("Resume optimized with Claude AI", {
+      toast.success(`${sectionToOptimize === 'all' ? 'Resume' : 'Section'} optimized with AI`, {
         description: `Your ${sectionToOptimize === 'all' ? 'resume' : sectionToOptimize} has been enhanced`
       });
       
     } catch (error) {
       console.error("Error optimizing resume:", error);
       toast.error("Failed to optimize resume", {
-        description: "Please try again later"
+        description: error.message || "Please try again later"
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
+  };
+
+  const handleGenerateCoverLetter = async () => {
+    setIsOptimizing(true);
+    
+    try {
+      if (!jobDescription) {
+        toast.warning("Job description needed", {
+          description: "Please add a job description for a better cover letter"
+        });
+        return;
+      }
+      
+      // Call the Supabase Edge Function
+      const response = await supabase.functions.invoke('optimize-resume', {
+        body: {
+          section: 'coverLetter',
+          data: resumeData,
+          jobDescription: jobDescription
+        }
+      });
+      
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      // Extract the generated cover letter
+      const generatedCoverLetter = response.data?.optimized;
+      
+      if (!generatedCoverLetter) {
+        throw new Error("No cover letter generated");
+      }
+      
+      // Update the cover letter state
+      setCoverLetter(generatedCoverLetter);
+      
+      toast.success("Cover letter generated", {
+        description: "Your tailored cover letter is ready"
+      });
+      
+    } catch (error) {
+      console.error("Error generating cover letter:", error);
+      toast.error("Failed to generate cover letter", {
+        description: error.message || "Please try again later"
       });
     } finally {
       setIsOptimizing(false);
@@ -216,15 +282,20 @@ export function useResumeState() {
     isOptimizing,
     showAuthDialog,
     resumeRef,
+    coverLetter,
+    jobDescription,
     setActiveTab,
     setShowAuthDialog,
     handleInputChange,
     handleArrayInputChange,
+    handleCoverLetterChange,
+    handleJobDescriptionChange,
     addArrayItem,
     removeArrayItem,
     previewResume,
     handleFormatChange,
     handleDownloadResume,
-    handleAIOptimize
+    handleAIOptimize,
+    handleGenerateCoverLetter
   };
 }
