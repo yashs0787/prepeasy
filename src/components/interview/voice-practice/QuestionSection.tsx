@@ -6,9 +6,10 @@ import { InterviewQuestion } from '../types/interviewTypes';
 
 interface QuestionSectionProps {
   question: InterviewQuestion | null;
-  isPracticing: boolean;
-  onStartPractice: () => void;
-  onReadQuestion: () => void;
+  isPracticing?: boolean;
+  onStartPractice?: () => void;
+  onReadQuestion?: () => void;
+  onReadAloud?: () => Promise<void>;
   isGeneratingSpeech: boolean;
   isPlaying: boolean;
   onStopSpeaking: () => void;
@@ -19,20 +20,24 @@ export function QuestionSection({
   isPracticing,
   onStartPractice,
   onReadQuestion,
+  onReadAloud,
   isGeneratingSpeech,
   isPlaying,
   onStopSpeaking
 }: QuestionSectionProps) {
+  // Use onReadAloud if provided, otherwise fall back to onReadQuestion
+  const handleReadQuestion = onReadAloud || onReadQuestion;
+  
   return (
     <div className="bg-muted p-4 rounded-lg">
       <div className="flex justify-between items-center mb-2">
         <h3 className="font-medium">Current Question:</h3>
-        {isPracticing && question && (
+        {isPracticing && question && handleReadQuestion && (
           <Button 
             variant="outline" 
             size="sm" 
             className="h-8 px-2"
-            onClick={isPlaying ? onStopSpeaking : onReadQuestion}
+            onClick={isPlaying ? onStopSpeaking : handleReadQuestion}
             disabled={isGeneratingSpeech || !question}
           >
             {isGeneratingSpeech ? (

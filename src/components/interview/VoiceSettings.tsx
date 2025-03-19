@@ -8,12 +8,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { ElevenLabsVoice, useElevenLabsVoice } from './useElevenLabsVoice';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 
 interface VoiceSettingsProps {
   onClose?: () => void;
+  useWhisperApi?: boolean;
+  onToggleWhisperApi?: (useWhisper: boolean) => void;
 }
 
-export function VoiceSettings({ onClose }: VoiceSettingsProps) {
+export function VoiceSettings({ onClose, useWhisperApi = true, onToggleWhisperApi }: VoiceSettingsProps) {
   const {
     apiKey,
     setApiKey,
@@ -45,6 +48,12 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
 
   const handleVoiceSelect = (value: string) => {
     setSelectedVoice(value);
+  };
+
+  const handleWhisperToggle = (checked: boolean) => {
+    if (onToggleWhisperApi) {
+      onToggleWhisperApi(checked);
+    }
   };
 
   return (
@@ -89,6 +98,17 @@ export function VoiceSettings({ onClose }: VoiceSettingsProps) {
             </Button>
           </div>
         </div>
+
+        {onToggleWhisperApi && (
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="use-whisper"
+              checked={useWhisperApi}
+              onCheckedChange={handleWhisperToggle}
+            />
+            <Label htmlFor="use-whisper">Use OpenAI Whisper API for speech recognition</Label>
+          </div>
+        )}
 
         <Button 
           onClick={handleTestVoice} 

@@ -103,6 +103,7 @@ export function VoicePractice({
         {question && (
           <QuestionSection 
             question={question}
+            isPracticing={isPracticing}
             onReadAloud={() => readQuestionAloud(question)}
             isGeneratingSpeech={isGeneratingSpeech}
             isPlaying={isPlaying}
