@@ -26,7 +26,7 @@ export function HeroSection({ scrollY, scrollToSection }: HeroSectionProps) {
             
             <div className="bg-slate-900/60 p-6 rounded-lg mb-8 border border-slate-800">
               <p className="text-base text-slate-300 italic">
-                "At ApplyGo.ai, we envision a world where landing a dream job is no longer a privilege but an accessible, efficient, and intelligent process for everyone. We are building the ultimate AI-powered career acceleration platform that makes high-volume job application preparation—especially in competitive fields like consulting and finance—10x more affordable and 100x faster."
+                "At prepeasy.ai, we envision a world where landing a dream job is no longer a privilege but an accessible, efficient, and intelligent process for everyone. We are building the ultimate AI-powered career acceleration platform that makes high-volume job application preparation—especially in competitive fields like consulting and finance—10x more affordable and 100x faster."
               </p>
             </div>
             

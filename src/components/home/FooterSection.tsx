@@ -10,7 +10,7 @@ export const FooterSection: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <Zap className="h-5 w-5 text-neon-purple" />
-              <span className="font-semibold text-lg gradient-text">ApplyGo</span>
+              <span className="font-semibold text-lg gradient-text">prepeasy.ai</span>
             </div>
             <p className="text-sm text-muted-foreground">
               The AI-powered job application platform that helps you land your dream job faster.
@@ -48,7 +48,7 @@ export const FooterSection: React.FC = () => {
         </div>
         
         <div className="border-t border-white/10 pt-8 text-sm text-center text-muted-foreground">
-          &copy; {new Date().getFullYear()} ApplyGo. All rights reserved.
+          &copy; {new Date().getFullYear()} prepeasy.ai. All rights reserved.
         </div>
       </div>
     </footer>

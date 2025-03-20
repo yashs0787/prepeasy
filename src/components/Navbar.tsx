@@ -21,7 +21,7 @@ export function Navbar() {
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2">
             <Zap className="h-6 w-6 text-neon-purple" />
-            <span className="font-bold text-xl gradient-text">ApplyGo</span>
+            <span className="font-bold text-xl gradient-text">prepeasy.ai</span>
           </Link>
           
           <nav className="hidden md:flex items-center gap-6">

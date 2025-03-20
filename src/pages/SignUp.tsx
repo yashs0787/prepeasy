@@ -62,7 +62,7 @@ export default function SignUp() {
         <CardHeader>
           <CardTitle>Create an account</CardTitle>
           <CardDescription>
-            Sign up to get started with JobSeek
+            Sign up to get started with prepeasy.ai
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

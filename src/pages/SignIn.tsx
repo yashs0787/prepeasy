@@ -22,13 +22,11 @@ export default function SignIn() {
     confirmPassword: "",
   });
 
-  // Check if user is already logged in
   useEffect(() => {
     if (user) {
       navigate("/dashboard");
     }
     
-    // Set up auth state listener for social logins
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -55,7 +53,8 @@ export default function SignIn() {
     e.preventDefault();
     try {
       await signIn(formData.email, formData.password);
-      // Toast and redirect handled by auth context
+      toast.success("Login successful!");
+      navigate("/dashboard");
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -70,7 +69,6 @@ export default function SignIn() {
     try {
       await signUp(formData.email, formData.password, formData.name);
       toast.success("Account created successfully!");
-      // Redirect to dashboard - authentication state will be handled by the auth context
       navigate("/dashboard");
     } catch (error: any) {
       toast.error(error.message);
@@ -78,7 +76,6 @@ export default function SignIn() {
   };
 
   const handleSocialLogin = (provider: string) => {
-    // This just shows a toast, the actual redirect is handled in SocialLoginButtons
     toast.info(`Redirecting to ${provider} login...`);
   };
 
@@ -125,7 +122,7 @@ export default function SignIn() {
             <CardHeader>
               <CardTitle>Create an account</CardTitle>
               <CardDescription>
-                Sign up to get started with ApplyGo
+                Sign up to get started with prepeasy.ai
               </CardDescription>
             </CardHeader>
             <CardContent>

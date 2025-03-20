@@ -14,7 +14,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
           <div className="flex justify-center mb-2">
             <BriefcaseIcon className="h-12 w-12 text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">ApplyGo</h1>
+          <h1 className="text-2xl font-bold">prepeasy.ai</h1>
           <p className="text-muted-foreground">Find your dream job today</p>
         </div>
         {children}
