@@ -1,55 +1,27 @@
 
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 import { LoaderCircle } from "lucide-react";
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading } = useAuth();
   const location = useLocation();
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setIsLoading(true);
-        const { data } = await supabase.auth.getSession();
-        setIsAuthenticated(!!data.session);
-      } catch (error) {
-        console.error("Authentication check failed:", error);
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkAuth();
-
-    // Set up auth listener
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setIsAuthenticated(!!session);
-        setIsLoading(false);
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
 
   if (isLoading) {
     // Loading state
     return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-900">
-        <LoaderCircle className="h-10 w-10 text-indigo-500 animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <LoaderCircle className="h-10 w-10 text-primary animate-spin" />
       </div>
     );
   }
 
-  if (!isAuthenticated) {
+  if (!user) {
+    // Redirect to login if no user is found
     return <Navigate to="/sign-in" state={{ from: location }} replace />;
   }
 
+  // If authenticated, render the protected content
   return <>{children}</>;
 }

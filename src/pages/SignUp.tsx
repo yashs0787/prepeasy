@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { toast } from "sonner";
-import { useAuth } from "@/App";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SignUp() {
   const { user, signUp } = useAuth();
@@ -20,6 +20,8 @@ export default function SignUp() {
     password: "",
     confirmPassword: "",
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     // Redirect if user is already logged in
@@ -44,10 +46,15 @@ export default function SignUp() {
     }
     
     try {
+      setIsSubmitting(true);
       await signUp(formData.email, formData.password, formData.name);
-      toast.success("Account created successfully!");
+      toast.success("Account created successfully! Please sign in now.");
+      navigate("/sign-in");
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Signup error:", error);
+      toast.error(error.message || "Failed to create account");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -76,6 +83,7 @@ export default function SignUp() {
                 value={formData.name}
                 onChange={handleInputChange}
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="space-y-2">
@@ -88,6 +96,7 @@ export default function SignUp() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="space-y-2">
@@ -100,6 +109,7 @@ export default function SignUp() {
                 value={formData.password}
                 onChange={handleInputChange}
                 required
+                disabled={isSubmitting}
               />
             </div>
             <div className="space-y-2">
@@ -112,10 +122,11 @@ export default function SignUp() {
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
                 required
+                disabled={isSubmitting}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Creating Account..." : "Create Account"}
             </Button>
           </form>
 
@@ -123,7 +134,7 @@ export default function SignUp() {
         </CardContent>
         <CardFooter className="justify-center text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link to="/signin" className="text-primary hover:underline ml-1">
+          <Link to="/sign-in" className="text-primary hover:underline ml-1">
             Sign in
           </Link>
         </CardFooter>

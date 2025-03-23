@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -6,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
-import { useAuth } from "@/App";
-import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -26,19 +26,6 @@ export default function SignIn() {
     if (user) {
       navigate("/dashboard");
     }
-    
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          toast.success("Login successful!");
-          navigate("/dashboard");
-        }
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
   }, [navigate, user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,10 +40,10 @@ export default function SignIn() {
     e.preventDefault();
     try {
       await signIn(formData.email, formData.password);
-      toast.success("Login successful!");
-      navigate("/dashboard");
+      // Don't show success toast or navigate here - it will be handled by the auth state change
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Login error:", error);
+      toast.error(error.message || "Failed to sign in");
     }
   };
 
@@ -68,10 +55,16 @@ export default function SignIn() {
     }
     try {
       await signUp(formData.email, formData.password, formData.name);
-      toast.success("Account created successfully!");
-      navigate("/dashboard");
+      toast.success("Account created! Please sign in now.");
+      setActiveTab("login");
+      setFormData({
+        ...formData,
+        password: "",
+        confirmPassword: "",
+      });
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Signup error:", error);
+      toast.error(error.message || "Failed to create account");
     }
   };
 

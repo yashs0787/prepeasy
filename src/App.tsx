@@ -18,7 +18,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { SubscriptionProvider } from './contexts/SubscriptionContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
-// Re-export the useAuth hook from AuthContext so that it can be imported from @/App
+// Export the useAuth hook from contexts/AuthContext
 export { useAuth } from './contexts/AuthContext';
 
 function App() {
