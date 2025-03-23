@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SocialLoginButtons } from "./SocialLoginButtons";
+import { LoaderCircle } from "lucide-react";
 
 interface LoginFormProps {
   email: string;
@@ -11,9 +12,17 @@ interface LoginFormProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   onSocialLogin: (provider: string) => void;
+  isSubmitting?: boolean;
 }
 
-export function LoginForm({ email, password, onInputChange, onSubmit, onSocialLogin }: LoginFormProps) {
+export function LoginForm({ 
+  email, 
+  password, 
+  onInputChange, 
+  onSubmit, 
+  onSocialLogin,
+  isSubmitting = false
+}: LoginFormProps) {
   return (
     <div className="space-y-4">
       <form onSubmit={onSubmit} className="space-y-4">
@@ -27,6 +36,8 @@ export function LoginForm({ email, password, onInputChange, onSubmit, onSocialLo
             value={email}
             onChange={onInputChange}
             required
+            disabled={isSubmitting}
+            autoComplete="email"
           />
         </div>
         <div className="space-y-2">
@@ -44,14 +55,23 @@ export function LoginForm({ email, password, onInputChange, onSubmit, onSocialLo
             value={password}
             onChange={onInputChange}
             required
+            disabled={isSubmitting}
+            autoComplete="current-password"
           />
         </div>
-        <Button type="submit" className="w-full">
-          Sign In
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+              Signing In...
+            </>
+          ) : (
+            "Sign In"
+          )}
         </Button>
       </form>
 
-      <SocialLoginButtons onSocialLogin={onSocialLogin} />
+      <SocialLoginButtons onSocialLogin={onSocialLogin} disabled={isSubmitting} />
     </div>
   );
 }

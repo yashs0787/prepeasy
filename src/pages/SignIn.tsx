@@ -8,6 +8,7 @@ import { AuthLayout } from "@/components/auth/AuthLayout";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { SignupForm } from "@/components/auth/SignupForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { LoaderCircle } from "lucide-react";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -21,6 +22,7 @@ export default function SignIn() {
     name: "",
     confirmPassword: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -38,21 +40,30 @@ export default function SignIn() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
     try {
       await signIn(formData.email, formData.password);
-      // Don't show success toast or navigate here - it will be handled by the auth state change
+      // Auth state change will handle redirection
     } catch (error: any) {
       console.error("Login error:", error);
-      toast.error(error.message || "Failed to sign in");
+      // Toast is handled in AuthContext
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
+    
+    setIsSubmitting(true);
     try {
       await signUp(formData.email, formData.password, formData.name);
       toast.success("Account created! Please sign in now.");
@@ -64,7 +75,9 @@ export default function SignIn() {
       });
     } catch (error: any) {
       console.error("Signup error:", error);
-      toast.error(error.message || "Failed to create account");
+      // Toast is handled in AuthContext
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -76,7 +89,7 @@ export default function SignIn() {
     return (
       <AuthLayout>
         <div className="flex items-center justify-center h-40">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
         </div>
       </AuthLayout>
     );
@@ -105,6 +118,7 @@ export default function SignIn() {
                 onInputChange={handleInputChange}
                 onSubmit={handleLogin}
                 onSocialLogin={handleSocialLogin}
+                isSubmitting={isSubmitting}
               />
             </CardContent>
           </Card>
@@ -127,6 +141,7 @@ export default function SignIn() {
                 onInputChange={handleInputChange}
                 onSubmit={handleSignup}
                 onSocialLogin={handleSocialLogin}
+                isSubmitting={isSubmitting}
               />
             </CardContent>
           </Card>

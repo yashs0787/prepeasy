@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SocialLoginButtons } from "./SocialLoginButtons";
+import { LoaderCircle } from "lucide-react";
 
 interface SignupFormProps {
   name: string;
@@ -13,6 +14,7 @@ interface SignupFormProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   onSocialLogin: (provider: string) => void;
+  isSubmitting?: boolean;
 }
 
 export function SignupForm({ 
@@ -22,7 +24,8 @@ export function SignupForm({
   confirmPassword, 
   onInputChange, 
   onSubmit, 
-  onSocialLogin 
+  onSocialLogin,
+  isSubmitting = false
 }: SignupFormProps) {
   return (
     <div className="space-y-4">
@@ -36,6 +39,8 @@ export function SignupForm({
             value={name}
             onChange={onInputChange}
             required
+            disabled={isSubmitting}
+            autoComplete="name"
           />
         </div>
         <div className="space-y-2">
@@ -48,6 +53,8 @@ export function SignupForm({
             value={email}
             onChange={onInputChange}
             required
+            disabled={isSubmitting}
+            autoComplete="email"
           />
         </div>
         <div className="space-y-2">
@@ -60,6 +67,8 @@ export function SignupForm({
             value={password}
             onChange={onInputChange}
             required
+            disabled={isSubmitting}
+            autoComplete="new-password"
           />
         </div>
         <div className="space-y-2">
@@ -72,14 +81,23 @@ export function SignupForm({
             value={confirmPassword}
             onChange={onInputChange}
             required
+            disabled={isSubmitting}
+            autoComplete="new-password"
           />
         </div>
-        <Button type="submit" className="w-full">
-          Create Account
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+              Creating Account...
+            </>
+          ) : (
+            "Create Account"
+          )}
         </Button>
       </form>
 
-      <SocialLoginButtons onSocialLogin={onSocialLogin} />
+      <SocialLoginButtons onSocialLogin={onSocialLogin} disabled={isSubmitting} />
 
       <div className="text-center text-sm text-muted-foreground pt-4">
         By signing up, you agree to our{" "}
